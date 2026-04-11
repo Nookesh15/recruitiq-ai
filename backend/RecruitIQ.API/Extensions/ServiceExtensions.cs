@@ -11,7 +11,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(config.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<ICandidateRepository, CandidateRepository>();
@@ -22,7 +22,8 @@ public static class ServiceExtensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(Application.Candidates.Commands.CreateCandidate.CreateCandidateHandler).Assembly));
+            cfg.RegisterServicesFromAssembly(
+                typeof(Application.Candidates.Commands.CreateCandidate.CreateCandidateHandler).Assembly));
 
         return services;
     }
