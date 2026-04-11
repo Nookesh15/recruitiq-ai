@@ -1,0 +1,13 @@
+# CODEOWNERS — auto-assigns reviewers based on changed paths
+# Format: <path-pattern>  <@github-username>
+
+# Global fallback — Nookesh reviews everything
+*                          @Nookesh15
+
+# Layer-specific ownership
+/frontend/                 @Nookesh15
+/backend/                  @Nookesh15
+/ai-engine/                @Nookesh15
+/infrastructure/           @Nookesh15
+/.github/                  @Nookesh15
+/docs/                     @Nookesh15

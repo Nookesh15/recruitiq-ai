@@ -1,0 +1,23 @@
+layer: frontend:
+  - changed-files:
+    - any-glob-to-any-file: "frontend/**"
+
+layer: backend:
+  - changed-files:
+    - any-glob-to-any-file: "backend/**"
+
+layer: ai-engine:
+  - changed-files:
+    - any-glob-to-any-file: "ai-engine/**"
+
+layer: infra:
+  - changed-files:
+    - any-glob-to-any-file: "infrastructure/**"
+    - any-glob-to-any-file: ".github/workflows/**"
+    - any-glob-to-any-file: "docker-compose*.yml"
+
+type: docs:
+  - changed-files:
+    - any-glob-to-any-file: "docs/**"
+    - any-glob-to-any-file: "*.md"
+    - any-glob-to-any-file: "**/*.md"
