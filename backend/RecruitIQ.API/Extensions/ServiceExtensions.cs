@@ -15,6 +15,7 @@ public static class ServiceExtensions
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<ICandidateRepository, CandidateRepository>();
+        services.AddScoped<ILookupRepository, LookupRepository>();
 
         return services;
     }

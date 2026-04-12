@@ -11,15 +11,19 @@ public class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<Candidate> Candidates => Set<Candidate>();
     public DbSet<JobPosting> JobPostings => Set<JobPosting>();
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
+    public DbSet<LookupCategory> LookupCategories => Set<LookupCategory>();
+    public DbSet<LookupValue> LookupValues => Set<LookupValue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Global soft-delete filter
+        // Global soft-delete query filters
         modelBuilder.Entity<Candidate>().HasQueryFilter(c => !c.IsDeleted);
         modelBuilder.Entity<JobPosting>().HasQueryFilter(j => !j.IsDeleted);
         modelBuilder.Entity<JobApplication>().HasQueryFilter(a => !a.IsDeleted);
+        modelBuilder.Entity<LookupCategory>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<LookupValue>().HasQueryFilter(v => !v.IsDeleted);
 
         base.OnModelCreating(modelBuilder);
     }

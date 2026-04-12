@@ -1,0 +1,96 @@
+<!-- Header -->
+<div class="flex items-center justify-between mb-5">
+  <div>
+    <h2 class="text-xl font-bold text-gray-800">Candidates</h2>
+    <p class="text-sm text-gray-500">{{ filtered.length }} candidates found</p>
+  </div>
+  <button class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+    + Add Candidate
+  </button>
+</div>
+
+<!-- Search -->
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5 flex gap-3">
+  <input [(ngModel)]="search" placeholder="Search by name or email..."
+         class="flex-1 text-sm border border-gray-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all" />
+  <button class="text-sm border border-gray-200 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Filter ▾</button>
+  <button class="text-sm border border-gray-200 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Export</button>
+</div>
+
+<!-- Loading / Error -->
+@if (loading) {
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center text-gray-400 text-sm">
+    Loading candidates...
+  </div>
+} @else if (error) {
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">{{ error }}</div>
+} @else {
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
+          <th class="text-left px-5 py-3.5 font-medium">Candidate</th>
+          <th class="text-left px-5 py-3.5 font-medium">Email</th>
+          <th class="text-left px-5 py-3.5 font-medium">Phone</th>
+          <th class="text-left px-5 py-3.5 font-medium">AI Score</th>
+          <th class="text-left px-5 py-3.5 font-medium">Status</th>
+          <th class="text-left px-5 py-3.5 font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        @for (c of filtered; track c.id) {
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {{ getInitials(c) }}
+                </div>
+                <p class="font-medium text-gray-800">{{ c.firstName }} {{ c.lastName }}</p>
+              </div>
+            </td>
+            <td class="px-5 py-3.5 text-gray-500 text-xs">{{ c.email }}</td>
+            <td class="px-5 py-3.5 text-gray-500">{{ c.phone ?? '—' }}</td>
+            <td class="px-5 py-3.5">
+              @if (c.aiScore != null) {
+                <div class="flex items-center gap-2">
+                  <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-1.5 rounded-full"
+                         [ngClass]="getScoreBar(c.aiScore)"
+                         [style.width.%]="c.aiScore"></div>
+                  </div>
+                  <span class="text-xs font-bold text-gray-700 w-8">{{ c.aiScore }}%</span>
+                </div>
+              } @else {
+                <span class="text-gray-300 text-xs">—</span>
+              }
+            </td>
+            <td class="px-5 py-3.5">
+              <span class="text-xs px-2.5 py-1 rounded-full font-medium"
+                    [ngClass]="getStatusColor(c.status)">
+                {{ getStatusLabel(c.status) }}
+              </span>
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex gap-2">
+                <button class="text-xs text-indigo-600 hover:underline font-medium">View</button>
+                <button class="text-xs text-gray-400 hover:underline">Edit</button>
+              </div>
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="6" class="px-5 py-10 text-center text-gray-400 text-sm">
+              @if (search) {
+                No candidates matching "{{ search }}"
+              } @else {
+                No candidates yet. Click "+ Add Candidate" to get started.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

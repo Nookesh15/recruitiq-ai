@@ -1,24 +1,38 @@
 version: "3.9"
 
+# ─────────────────────────────────────────────────────────────
+# RecruitIQ — Local Dev Stack
+# Usage:  docker compose up --build
+# Requires: copy .env.example → .env and fill in MSSQL_SA_PASSWORD
+# ─────────────────────────────────────────────────────────────
+
 services:
+
+  # ── SQL Server 2022 (Developer Edition — free) ────────────
   db:
-    image: postgres:16-alpine
+    image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: recruitiq-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: recruitiq
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Str0ng!Pass2024}
+      MSSQL_PID: Developer
     ports:
-      - "5432:5432"
+      - "1433:1433"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - mssql_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD:-Str0ng!Pass2024}' -Q 'SELECT 1' -C -b -o /dev/null",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
+  # ── .NET 8 Backend ─────────────────────────────────────────
   backend:
     build:
       context: ../../backend
@@ -28,13 +42,17 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=db;Database=recruitiq;Username=postgres;Password=postgres
-      - AiEngineUrl=http://ai-engine:8000
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: >-
+        Server=db,1433;Database=RecruitIQ_Dev;User Id=sa;
+        Password=${MSSQL_SA_PASSWORD:-Str0ng!Pass2024};
+        TrustServerCertificate=True;
+      AiEngineUrl: http://ai-engine:8000
     depends_on:
       db:
         condition: service_healthy
 
+  # ── Python FastAPI AI Engine ────────────────────────────────
   ai-engine:
     build:
       context: ../../ai-engine
@@ -43,14 +61,13 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db/recruitiq
     env_file:
       - .env
     depends_on:
       db:
         condition: service_healthy
 
+  # ── Angular Frontend (nginx) ────────────────────────────────
   frontend:
     build:
       context: ../../frontend
@@ -63,4 +80,4 @@ services:
       - backend
 
 volumes:
-  pg_data:
+  mssql_data:

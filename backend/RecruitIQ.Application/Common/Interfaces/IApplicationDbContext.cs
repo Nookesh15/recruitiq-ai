@@ -8,5 +8,7 @@ public interface IApplicationDbContext
     DbSet<Candidate> Candidates { get; }
     DbSet<JobPosting> JobPostings { get; }
     DbSet<JobApplication> JobApplications { get; }
+    DbSet<LookupCategory> LookupCategories { get; }
+    DbSet<LookupValue> LookupValues { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
