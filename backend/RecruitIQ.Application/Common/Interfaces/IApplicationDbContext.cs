@@ -10,5 +10,6 @@ public interface IApplicationDbContext
     DbSet<JobApplication> JobApplications { get; }
     DbSet<LookupCategory> LookupCategories { get; }
     DbSet<LookupValue> LookupValues { get; }
+    DbSet<User> Users { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

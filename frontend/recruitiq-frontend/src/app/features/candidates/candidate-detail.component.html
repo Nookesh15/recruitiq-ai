@@ -1,0 +1,153 @@
+<!-- Back -->
+<div class="mb-5">
+  <a routerLink="/candidates" class="text-sm text-indigo-600 hover:underline font-medium">← Back to Candidates</a>
+</div>
+
+@if (loading) {
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center text-gray-400">Loading...</div>
+} @else if (error) {
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">{{ error }}</div>
+} @else if (candidate) {
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+    <!-- Profile Card -->
+    <div class="xl:col-span-1 bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-20 h-20 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl font-bold mb-3">
+          {{ getInitials() }}
+        </div>
+        <h2 class="text-xl font-bold text-gray-800">{{ candidate.firstName }} {{ candidate.lastName }}</h2>
+        <p class="text-sm text-gray-500">{{ candidate.email }}</p>
+        @if (candidate.phone) {
+          <p class="text-sm text-gray-400 mt-0.5">{{ candidate.phone }}</p>
+        }
+      </div>
+
+      <!-- AI Score -->
+      @if (candidate.aiScore != null) {
+        <div class="bg-indigo-50 rounded-xl p-4 mb-4 text-center">
+          <p class="text-xs text-indigo-500 font-medium">AI Score</p>
+          <p class="text-3xl font-bold text-indigo-700">{{ candidate.aiScore }}%</p>
+        </div>
+      }
+
+      <!-- Status -->
+      <div class="mb-4">
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Status</label>
+        <select (change)="changeStatus($any($event.target).value)" [value]="candidate.status"
+                class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-300">
+          @for (s of statuses; track s.id) {
+            <option [value]="s.code">{{ s.displayName }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Status badge -->
+      <span class="inline-flex text-xs px-3 py-1 rounded-full font-medium mb-5" [ngClass]="getStatusColor(candidate.status)">
+        {{ getStatusLabel(candidate.status) }}
+      </span>
+
+      <!-- Resume -->
+      <div class="border-t border-gray-100 pt-4">
+        <p class="text-xs font-medium text-gray-500 mb-2">Resume</p>
+        @if (candidate.resumeUrl) {
+          <a [href]="'http://localhost:5000' + candidate.resumeUrl" target="_blank"
+             class="text-xs text-indigo-600 hover:underline block mb-2">View current resume →</a>
+        }
+        <input type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)"
+               class="text-xs text-gray-500 w-full mb-2" />
+        <button (click)="uploadResume()" [disabled]="!resumeFile || uploadingResume"
+                class="w-full text-xs bg-indigo-600 text-white py-2 rounded-lg disabled:opacity-50 hover:bg-indigo-700 transition-colors">
+          {{ uploadingResume ? 'Uploading...' : 'Upload & Score Resume' }}
+        </button>
+        @if (uploadMsg) {
+          <p class="text-xs mt-2" [ngClass]="uploadMsg.includes('failed') ? 'text-red-500' : 'text-green-600'">{{ uploadMsg }}</p>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="border-t border-gray-100 pt-4 mt-4 space-y-2">
+        <button (click)="showApplyModal = true"
+                class="w-full text-sm bg-indigo-50 text-indigo-700 py-2 rounded-lg font-medium hover:bg-indigo-100 transition-colors">
+          Apply to Job
+        </button>
+        <button (click)="deleteCandidate()"
+                class="w-full text-sm text-red-500 py-2 rounded-lg hover:bg-red-50 transition-colors">
+          Delete Candidate
+        </button>
+      </div>
+    </div>
+
+    <!-- Applications Panel -->
+    <div class="xl:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-800">Job Applications</h3>
+        <p class="text-xs text-gray-400 mt-0.5">{{ applications.length }} application(s)</p>
+      </div>
+      <div class="divide-y divide-gray-50">
+        @for (app of applications; track app.id) {
+          <div class="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50">
+            <div>
+              <p class="text-sm font-medium text-gray-800">{{ app.jobTitle }}</p>
+              <p class="text-xs text-gray-400">Applied {{ app.createdAt | date:'mediumDate' }}</p>
+            </div>
+            @if (app.matchScore != null) {
+              <span class="text-sm font-bold text-indigo-600">{{ app.matchScore }}%</span>
+            }
+          </div>
+        }
+        @empty {
+          <div class="px-5 py-10 text-center text-gray-400 text-sm">
+            No applications yet. Use "Apply to Job" to link this candidate to a job posting.
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Apply to Job Modal -->
+  @if (showApplyModal) {
+    <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Apply to Job</h3>
+
+        @if (applyError) {
+          <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm mb-4">{{ applyError }}</div>
+        }
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Select Job Posting</label>
+            <select [(ngModel)]="selectedJobId"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300">
+              <option value="">-- Select a job --</option>
+              @for (job of jobs; track job.id) {
+                <option [value]="job.id">{{ job.title }} ({{ job.department }})</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Notes (optional)</label>
+            <textarea [(ngModel)]="applyNotes" rows="3"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+                      placeholder="Recruiter notes..."></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-5">
+          <button (click)="showApplyModal = false"
+                  class="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm hover:bg-gray-50">
+            Cancel
+          </button>
+          <button (click)="applyToJob()" [disabled]="!selectedJobId || applying"
+                  class="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-indigo-700">
+            {{ applying ? 'Applying...' : 'Apply' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+}

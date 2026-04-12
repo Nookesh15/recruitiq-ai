@@ -1,55 +1,61 @@
-<div class="flex h-screen bg-gray-50">
+@if (auth.isLoggedIn()) {
+  <div class="flex h-screen bg-gray-50">
 
-  <!-- Sidebar -->
-  <aside class="w-64 bg-indigo-900 text-white flex flex-col shadow-xl flex-shrink-0">
-    <div class="px-6 py-5 border-b border-indigo-700">
-      <h1 class="text-xl font-bold tracking-tight">
-        <span class="text-indigo-300">Recruit</span><span class="text-white">IQ</span>
-        <span class="ml-2 text-xs bg-indigo-600 text-indigo-200 px-2 py-0.5 rounded-full">AI</span>
-      </h1>
-      <p class="text-indigo-400 text-xs mt-0.5">Smart Hiring Platform</p>
-    </div>
+    <!-- Sidebar -->
+    <aside class="w-64 bg-indigo-900 text-white flex flex-col shadow-xl flex-shrink-0">
+      <div class="px-6 py-5 border-b border-indigo-700">
+        <h1 class="text-xl font-bold tracking-tight">
+          <span class="text-indigo-300">Recruit</span><span class="text-white">IQ</span>
+          <span class="ml-2 text-xs bg-indigo-600 text-indigo-200 px-2 py-0.5 rounded-full">AI</span>
+        </h1>
+        <p class="text-indigo-400 text-xs mt-0.5">Smart Hiring Platform</p>
+      </div>
 
-    <nav class="flex-1 px-3 py-4 space-y-1">
-      @for (item of menuItems; track item.route) {
-        <a [routerLink]="item.route"
-           routerLinkActive="bg-indigo-700 text-white"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white transition-all text-sm font-medium">
-          <span class="text-lg">{{ item.icon }}</span>
-          {{ item.label }}
-        </a>
-      }
-    </nav>
+      <nav class="flex-1 px-3 py-4 space-y-1">
+        @for (item of menuItems; track item.route) {
+          <a [routerLink]="item.route"
+             routerLinkActive="bg-indigo-700 text-white"
+             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white transition-all text-sm font-medium">
+            <span class="text-lg">{{ item.icon }}</span>
+            {{ item.label }}
+          </a>
+        }
+      </nav>
 
-    <div class="px-4 py-4 border-t border-indigo-700">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-bold">N</div>
-        <div>
-          <p class="text-sm font-medium text-white">Nookesh</p>
-          <p class="text-xs text-indigo-400">Admin</p>
+      <div class="px-4 py-4 border-t border-indigo-700">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-bold">
+            {{ auth.currentUser()?.fullName?.[0] ?? 'U' }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-white truncate">{{ auth.currentUser()?.fullName }}</p>
+            <p class="text-xs text-indigo-400">{{ auth.currentUser()?.role }}</p>
+          </div>
         </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <div class="flex-1 flex flex-col overflow-hidden">
-    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
-      <div>
-        <h2 class="text-lg font-semibold text-gray-800">RecruitIQ Dashboard</h2>
-        <p class="text-xs text-gray-500">AI-Powered Recruitment Platform</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">● System Online</span>
-        <button class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
-          + New Job
+        <button (click)="auth.logout()"
+                class="w-full text-xs text-indigo-300 hover:text-white hover:bg-indigo-800 py-1.5 rounded-lg transition-colors">
+          Sign out
         </button>
       </div>
-    </header>
+    </aside>
 
-    <main class="flex-1 overflow-auto p-6">
-      <router-outlet />
-    </main>
+    <!-- Main -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">RecruitIQ</h2>
+          <p class="text-xs text-gray-500">AI-Powered Recruitment Platform</p>
+        </div>
+        <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">● System Online</span>
+      </header>
+
+      <main class="flex-1 overflow-auto p-6">
+        <router-outlet />
+      </main>
+    </div>
+
   </div>
-
-</div>
+} @else {
+  <!-- Login page gets full screen, no sidebar -->
+  <router-outlet />
+}

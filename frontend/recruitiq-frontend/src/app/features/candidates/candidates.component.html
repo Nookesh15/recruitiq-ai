@@ -4,7 +4,8 @@
     <h2 class="text-xl font-bold text-gray-800">Candidates</h2>
     <p class="text-sm text-gray-500">{{ filtered.length }} candidates found</p>
   </div>
-  <button class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+  <button (click)="showAddModal = true"
+          class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
     + Add Candidate
   </button>
 </div>
@@ -13,8 +14,6 @@
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5 flex gap-3">
   <input [(ngModel)]="search" placeholder="Search by name or email..."
          class="flex-1 text-sm border border-gray-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all" />
-  <button class="text-sm border border-gray-200 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Filter ▾</button>
-  <button class="text-sm border border-gray-200 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50">Export</button>
 </div>
 
 <!-- Loading / Error -->
@@ -55,9 +54,7 @@
               @if (c.aiScore != null) {
                 <div class="flex items-center gap-2">
                   <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-1.5 rounded-full"
-                         [ngClass]="getScoreBar(c.aiScore)"
-                         [style.width.%]="c.aiScore"></div>
+                    <div class="h-1.5 rounded-full" [ngClass]="getScoreBar(c.aiScore)" [style.width.%]="c.aiScore"></div>
                   </div>
                   <span class="text-xs font-bold text-gray-700 w-8">{{ c.aiScore }}%</span>
                 </div>
@@ -66,31 +63,75 @@
               }
             </td>
             <td class="px-5 py-3.5">
-              <span class="text-xs px-2.5 py-1 rounded-full font-medium"
-                    [ngClass]="getStatusColor(c.status)">
+              <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="getStatusColor(c.status)">
                 {{ getStatusLabel(c.status) }}
               </span>
             </td>
             <td class="px-5 py-3.5">
-              <div class="flex gap-2">
-                <button class="text-xs text-indigo-600 hover:underline font-medium">View</button>
-                <button class="text-xs text-gray-400 hover:underline">Edit</button>
-              </div>
+              <a [routerLink]="['/candidates', c.id]"
+                 class="text-xs text-indigo-600 hover:underline font-medium mr-3">View</a>
             </td>
           </tr>
         }
         @empty {
           <tr>
             <td colspan="6" class="px-5 py-10 text-center text-gray-400 text-sm">
-              @if (search) {
-                No candidates matching "{{ search }}"
-              } @else {
-                No candidates yet. Click "+ Add Candidate" to get started.
-              }
+              @if (search) { No candidates matching "{{ search }}" }
+              @else { No candidates yet. Click "+ Add Candidate" to get started. }
             </td>
           </tr>
         }
       </tbody>
     </table>
+  </div>
+}
+
+<!-- Add Candidate Modal -->
+@if (showAddModal) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+      <h3 class="text-lg font-bold text-gray-800 mb-4">Add Candidate</h3>
+
+      @if (addError) {
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm mb-4">{{ addError }}</div>
+      }
+
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">First Name *</label>
+            <input [(ngModel)]="newFirst" placeholder="Priya"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Last Name *</label>
+            <input [(ngModel)]="newLast" placeholder="Sharma"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Email *</label>
+          <input type="email" [(ngModel)]="newEmail" placeholder="priya@example.com"
+                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+          <input [(ngModel)]="newPhone" placeholder="+91 9999999999"
+                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-5">
+        <button (click)="closeModal()"
+                class="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm hover:bg-gray-50">
+          Cancel
+        </button>
+        <button (click)="addCandidate()"
+                [disabled]="!newFirst || !newLast || !newEmail || adding"
+                class="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-indigo-700">
+          {{ adding ? 'Adding...' : 'Add Candidate' }}
+        </button>
+      </div>
+    </div>
   </div>
 }

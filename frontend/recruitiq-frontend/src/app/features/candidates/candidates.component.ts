@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { CandidateService } from '../../core/services/candidate.service';
 import { LookupService } from '../../core/services/lookup.service';
 import { Candidate } from '../../core/models/candidate.model';
@@ -9,7 +10,7 @@ import { LookupValue } from '../../core/models/lookup.model';
 @Component({
   selector: 'app-candidates',
   standalone: true,
-  imports: [NgClass, FormsModule],
+  imports: [NgClass, FormsModule, RouterLink],
   templateUrl: './candidates.component.html',
 })
 export class CandidatesComponent implements OnInit {
@@ -22,10 +23,18 @@ export class CandidatesComponent implements OnInit {
   loading = true;
   error = '';
 
+  // Add candidate modal
+  showAddModal = false;
+  adding = false;
+  addError = '';
+  newFirst = '';
+  newLast = '';
+  newEmail = '';
+  newPhone = '';
+
   ngOnInit(): void {
     this.lookupService.getByCategory('CandidateStatus').subscribe({
       next: (vals) => (this.statuses = vals),
-      error: () => (this.error = 'Failed to load statuses'),
     });
 
     this.candidateService.getAll().subscribe({
@@ -74,5 +83,33 @@ export class CandidatesComponent implements OnInit {
 
   getInitials(c: Candidate): string {
     return `${c.firstName[0]}${c.lastName[0]}`.toUpperCase();
+  }
+
+  addCandidate(): void {
+    this.adding = true;
+    this.addError = '';
+    this.candidateService.create({
+      firstName: this.newFirst,
+      lastName: this.newLast,
+      email: this.newEmail,
+      phone: this.newPhone || undefined,
+    }).subscribe({
+      next: (c) => {
+        this.candidates = [c, ...this.candidates];
+        this.showAddModal = false;
+        this.newFirst = this.newLast = this.newEmail = this.newPhone = '';
+        this.adding = false;
+      },
+      error: (err) => {
+        this.addError = err?.error?.error ?? 'Failed to add candidate.';
+        this.adding = false;
+      },
+    });
+  }
+
+  closeModal(): void {
+    this.showAddModal = false;
+    this.addError = '';
+    this.newFirst = this.newLast = this.newEmail = this.newPhone = '';
   }
 }

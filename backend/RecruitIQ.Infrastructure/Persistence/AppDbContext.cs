@@ -13,6 +13,7 @@ public class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
     public DbSet<LookupCategory> LookupCategories => Set<LookupCategory>();
     public DbSet<LookupValue> LookupValues => Set<LookupValue>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +25,8 @@ public class AppDbContext : DbContext, IApplicationDbContext
         modelBuilder.Entity<JobApplication>().HasQueryFilter(a => !a.IsDeleted);
         modelBuilder.Entity<LookupCategory>().HasQueryFilter(c => !c.IsDeleted);
         modelBuilder.Entity<LookupValue>().HasQueryFilter(v => !v.IsDeleted);
+        modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
+        modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
 
         base.OnModelCreating(modelBuilder);
     }

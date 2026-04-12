@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -9,11 +10,11 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './app.scss'
 })
 export class App {
+  readonly auth = inject(AuthService);
+
   menuItems = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },
     { label: 'Candidates', icon: '👤', route: '/candidates' },
     { label: 'Job Postings', icon: '💼', route: '/jobs' },
-    { label: 'AI Screening', icon: '🤖', route: '/screening' },
-    { label: 'Analytics', icon: '📈', route: '/analytics' },
   ];
 }
