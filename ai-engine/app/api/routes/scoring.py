@@ -1,7 +1,9 @@
 import re
-from fastapi import APIRouter, HTTPException
-from app.models.schemas import ResumeScoreRequest, ResumeScoreResponse
+
+from fastapi import APIRouter
+
 from app.core.config import settings
+from app.models.schemas import ResumeScoreRequest, ResumeScoreResponse
 
 router = APIRouter()
 

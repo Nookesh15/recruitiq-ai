@@ -1,7 +1,7 @@
 import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
+from httpx import ASGITransport, AsyncClient
 
+from app.main import app
 
 SAMPLE_RESUME = """
 John Doe
@@ -67,7 +67,7 @@ async def test_score_resume_validation_error() -> None:
             "/api/v1/score",
             json={
                 "candidate_id": "test",
-                "resume_text": "x",   # too short
+                "resume_text": "x",  # too short
                 "job_description": "y",  # too short
             },
         )
