@@ -18,6 +18,7 @@ public class GetCandidateByIdHandler : IRequestHandler<GetCandidateByIdQuery, Re
     public async Task<Result<CandidateDto>> Handle(GetCandidateByIdQuery request, CancellationToken ct)
     {
         var c = await _context.Candidates
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == request.Id, ct);
 
         if (c is null)

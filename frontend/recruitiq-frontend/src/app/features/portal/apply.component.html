@@ -1,0 +1,153 @@
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 to-white py-10 px-4">
+
+  <!-- Logo header -->
+  <div class="max-w-2xl mx-auto mb-8 text-center">
+    <h1 class="text-2xl font-bold">
+      <span class="text-indigo-600">Recruit</span><span class="text-gray-800">IQ</span>
+      <span class="ml-2 text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full">AI</span>
+    </h1>
+    <p class="text-gray-400 text-sm mt-1">Smart Hiring Platform</p>
+  </div>
+
+  <div class="max-w-2xl mx-auto">
+
+    <!-- Loading job -->
+    @if (loadingJob) {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center text-gray-400">
+        Loading job details...
+      </div>
+    }
+
+    <!-- Job not found -->
+    @else if (jobError) {
+      <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-10 text-center">
+        <p class="text-4xl mb-3">😕</p>
+        <p class="text-gray-700 font-semibold">Job Not Found</p>
+        <p class="text-gray-400 text-sm mt-1">{{ jobError }}</p>
+      </div>
+    }
+
+    <!-- Application submitted successfully -->
+    @else if (result) {
+      <div class="bg-white rounded-2xl shadow-sm border border-green-100 p-10 text-center">
+        <p class="text-5xl mb-4">🎉</p>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Application Submitted!</h2>
+        <p class="text-gray-500 text-sm mb-6">{{ result.message }}</p>
+        <div class="bg-gray-50 rounded-xl p-4 text-left space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Applied for</span>
+            <span class="font-medium text-gray-800">{{ result.jobTitle }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Name</span>
+            <span class="font-medium text-gray-800">{{ result.candidateName }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Email</span>
+            <span class="font-medium text-gray-800">{{ result.email }}</span>
+          </div>
+          @if (result.aiScore != null) {
+            <div class="flex justify-between">
+              <span class="text-gray-500">AI Match Score</span>
+              <span class="font-bold text-indigo-600">{{ result.aiScore }}%</span>
+            </div>
+          }
+        </div>
+        <p class="text-xs text-gray-400 mt-6">Our team will review your application and be in touch soon.</p>
+      </div>
+    }
+
+    <!-- Application form -->
+    @else if (job) {
+      <!-- Job card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">{{ job.title }}</h2>
+            <p class="text-sm text-gray-500 mt-0.5">{{ job.department }} · {{ job.location }}</p>
+          </div>
+          @if (job.status === 'Active') {
+            <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">● Hiring</span>
+          } @else {
+            <span class="text-xs bg-red-100 text-red-600 px-2.5 py-1 rounded-full font-medium">Closed</span>
+          }
+        </div>
+        <p class="text-sm text-gray-600 mt-3 leading-relaxed whitespace-pre-line">{{ job.description }}</p>
+      </div>
+
+      @if (job.status !== 'Active') {
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm text-center">
+          This position is no longer accepting applications.
+        </div>
+      } @else {
+
+        <!-- Form -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 class="text-lg font-bold text-gray-800 mb-5">Apply for this Position</h3>
+
+          @if (submitError) {
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm mb-4">{{ submitError }}</div>
+          }
+
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">First Name *</label>
+                <input [(ngModel)]="firstName" placeholder="Priya"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Last Name *</label>
+                <input [(ngModel)]="lastName" placeholder="Sharma"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Email Address *</label>
+              <input type="email" [(ngModel)]="email" placeholder="priya@example.com"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
+              <input [(ngModel)]="phone" placeholder="+91 9999999999"
+                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Resume / CV *</label>
+              <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-indigo-300 transition-colors">
+                <input type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)"
+                       class="hidden" #fileInput />
+                <button type="button" (click)="fileInput.click()"
+                        class="text-sm text-indigo-600 hover:underline font-medium">
+                  {{ resumeFile ? resumeFile.name : 'Click to upload PDF, DOC, DOCX' }}
+                </button>
+                <p class="text-xs text-gray-400 mt-1">Max 10MB</p>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Cover Note (optional)</label>
+              <textarea [(ngModel)]="coverNote" rows="3"
+                        placeholder="Why are you interested in this role?"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 resize-none"></textarea>
+            </div>
+          </div>
+
+          <button (click)="submit()" [disabled]="!canSubmit"
+                  class="w-full mt-6 bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold disabled:opacity-50 hover:bg-indigo-700 transition-colors">
+            {{ submitting ? 'Submitting Application...' : 'Submit Application' }}
+          </button>
+
+          <p class="text-xs text-gray-400 text-center mt-3">
+            Your resume will be reviewed by AI and our hiring team will be in touch.
+          </p>
+        </div>
+
+      }
+    }
+
+  </div>
+</div>

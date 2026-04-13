@@ -8,6 +8,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent),
   },
   {
+    // Public apply portal — no auth required
+    path: 'apply/:jobId',
+    loadComponent: () => import('./features/portal/apply.component').then(m => m.ApplyComponent),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     children: [
@@ -26,6 +31,10 @@ export const routes: Routes = [
       {
         path: 'jobs',
         loadComponent: () => import('./features/jobs/jobs.component').then(m => m.JobsComponent),
+      },
+      {
+        path: 'jobs/:id/applicants',
+        loadComponent: () => import('./features/jobs/job-applicants.component').then(m => m.JobApplicantsComponent),
       },
     ],
   },

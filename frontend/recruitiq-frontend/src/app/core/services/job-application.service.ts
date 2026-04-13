@@ -14,6 +14,12 @@ export class JobApplicationService {
     );
   }
 
+  getByJobId(jobId: string): Observable<JobApplication[]> {
+    return this.http.get<JobApplication[]>(
+      `${environment.apiUrl}/jobapplications/job/${jobId}`
+    );
+  }
+
   create(candidateId: string, jobPostingId: string, notes?: string): Observable<JobApplication> {
     return this.http.post<JobApplication>(`${environment.apiUrl}/jobapplications`, {
       candidateId,

@@ -1,92 +1,108 @@
-<!-- Stats -->
+@if (loading) {
+  <div class="flex items-center justify-center h-64 text-gray-400 text-sm">Loading dashboard...</div>
+} @else if (error) {
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">{{ error }}</div>
+} @else if (stats) {
+
+<!-- Stat Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-  @for (stat of stats; track stat.label) {
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
-           [ngClass]="stat.color">
-        {{ stat.icon }}
-      </div>
-      <div>
-        <p class="text-sm text-gray-500 font-medium">{{ stat.label }}</p>
-        <p class="text-2xl font-bold text-gray-800">{{ stat.value }}</p>
-        <p class="text-xs text-green-600 mt-0.5">{{ stat.change }}</p>
-      </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+    <div class="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-2xl shadow-sm">👤</div>
+    <div>
+      <p class="text-sm text-gray-500 font-medium">Total Candidates</p>
+      <p class="text-2xl font-bold text-gray-800">{{ stats.totalCandidates }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">{{ stats.scoredCount }} AI scored</p>
     </div>
-  }
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+    <div class="w-12 h-12 rounded-xl bg-indigo-500 flex items-center justify-center text-2xl shadow-sm">💼</div>
+    <div>
+      <p class="text-sm text-gray-500 font-medium">Active Jobs</p>
+      <p class="text-2xl font-bold text-gray-800">{{ stats.activeJobs }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">{{ stats.totalApplications }} total applications</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+    <div class="w-12 h-12 rounded-xl bg-purple-500 flex items-center justify-center text-2xl shadow-sm">📋</div>
+    <div>
+      <p class="text-sm text-gray-500 font-medium">Total Applications</p>
+      <p class="text-2xl font-bold text-gray-800">{{ stats.totalApplications }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">Across all job postings</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+    <div class="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center text-2xl shadow-sm">🤖</div>
+    <div>
+      <p class="text-sm text-gray-500 font-medium">Avg AI Score</p>
+      <p class="text-2xl font-bold text-gray-800">{{ stats.avgAiScore != null ? stats.avgAiScore + '%' : 'N/A' }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">{{ stats.scoredCount > 0 ? 'Based on ' + stats.scoredCount + ' resumes' : 'No resumes scored yet' }}</p>
+    </div>
+  </div>
+
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
 
-  <!-- Recent Candidates -->
+  <!-- Recent Applications -->
   <div class="xl:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="font-semibold text-gray-800">Recent Candidates</h3>
+      <h3 class="font-semibold text-gray-800">Recent Applications</h3>
       <a routerLink="/candidates" class="text-xs text-indigo-600 hover:underline font-medium">View all →</a>
     </div>
     <div class="divide-y divide-gray-50">
-      @if (loading) {
-        <div class="px-5 py-10 text-center text-gray-400 text-sm">Loading...</div>
-      } @else {
-        @for (c of recentCandidates; track c.id) {
-          <div class="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
-                {{ getInitials(c) }}
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-800">{{ c.firstName }} {{ c.lastName }}</p>
-                <p class="text-xs text-gray-500">{{ c.email }}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              @if (c.aiScore != null) {
-                <div class="text-center">
-                  <p class="text-xs text-gray-400">AI Score</p>
-                  <p class="text-sm font-bold" [ngClass]="getScoreColor(c.aiScore)">{{ c.aiScore }}%</p>
-                </div>
-              }
-              <span class="text-xs px-2.5 py-1 rounded-full font-medium"
-                    [ngClass]="getStatusColor(c.status)">
-                {{ getStatusLabel(c.status) }}
-              </span>
-            </div>
+      @for (app of stats.recentApplications; track app.id) {
+        <div class="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
+          <div>
+            <p class="text-sm font-medium text-gray-800">{{ app.candidateName }}</p>
+            <p class="text-xs text-gray-400">{{ app.jobTitle }} · {{ app.createdAt | date:'mediumDate' }}</p>
           </div>
-        }
-        @empty {
-          <div class="px-5 py-10 text-center text-gray-400 text-sm">No candidates yet.</div>
-        }
+          @if (app.matchScore != null) {
+            <span class="text-sm font-bold" [ngClass]="scoreColor(app.matchScore)">{{ app.matchScore }}%</span>
+          } @else {
+            <span class="text-xs text-gray-300">No score</span>
+          }
+        </div>
+      }
+      @empty {
+        <div class="px-5 py-10 text-center text-gray-400 text-sm">No applications yet.</div>
       }
     </div>
   </div>
 
-  <!-- Pipeline -->
+  <!-- Hiring Pipeline -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100">
     <div class="px-5 py-4 border-b border-gray-100">
       <h3 class="font-semibold text-gray-800">Hiring Pipeline</h3>
-      <p class="text-xs text-gray-400 mt-0.5">All active candidates</p>
+      <p class="text-xs text-gray-400 mt-0.5">Candidates by stage</p>
     </div>
     <div class="p-5 space-y-4">
-      @if (pipeline.length === 0 && !loading) {
-        <p class="text-sm text-gray-400 text-center py-4">No pipeline data yet.</p>
+      @if (stats.pipeline.length === 0) {
+        <p class="text-sm text-gray-400 text-center py-4">No candidates yet.</p>
       }
-      @for (stage of pipeline; track stage.stage) {
+      @for (stage of stats.pipeline; track stage.status) {
         <div>
           <div class="flex justify-between text-xs text-gray-600 mb-1.5 font-medium">
-            <span>{{ stage.stage }}</span>
+            <span>{{ stage.status }}</span>
             <span>{{ stage.count }}</span>
           </div>
           <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div class="h-2 rounded-full transition-all"
-                 [ngClass]="stage.color"
-                 [style.width.%]="(stage.count / maxPipelineCount) * 100"></div>
+                 [ngClass]="pipelineColor(stage.status)"
+                 [style.width.%]="(stage.count / maxPipeline) * 100"></div>
           </div>
         </div>
       }
     </div>
     <div class="px-5 py-4 border-t border-gray-100 bg-indigo-50 rounded-b-xl">
       <p class="text-xs text-indigo-600 font-medium">🤖 AI scoring powered by RecruitIQ</p>
-      <p class="text-xs text-indigo-500 mt-1">Pipeline built from live DB data</p>
+      <p class="text-xs text-indigo-500 mt-1">Live data from database</p>
     </div>
   </div>
 
 </div>
+
+}

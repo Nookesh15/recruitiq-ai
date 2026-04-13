@@ -24,7 +24,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
         policy.WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              .SetPreflightMaxAge(TimeSpan.FromHours(1)));
 });
 
 var app = builder.Build();
@@ -40,15 +41,16 @@ using (var scope = app.Services.CreateScope())
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseStaticFiles();
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 }
 
-app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+// UseHttpsRedirection intentionally omitted — HTTP-only in local development
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

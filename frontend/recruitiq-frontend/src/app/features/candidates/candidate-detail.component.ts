@@ -47,6 +47,13 @@ export class CandidateDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
 
+    // Show candidate instantly from router navigation state (passed from the list)
+    const navState = history.state as { candidate?: ReturnType<typeof Object.assign> };
+    if (navState?.candidate) {
+      this.candidate = navState.candidate as typeof this.candidate;
+      this.loading = false;
+    }
+
     this.lookupService.getByCategory('CandidateStatus').subscribe(v => (this.statuses = v));
 
     this.candidateService.getById(id).subscribe({
@@ -55,7 +62,9 @@ export class CandidateDetailComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Candidate not found.';
+        if (!this.candidate) {
+          this.error = 'Candidate not found.';
+        }
         this.loading = false;
       },
     });

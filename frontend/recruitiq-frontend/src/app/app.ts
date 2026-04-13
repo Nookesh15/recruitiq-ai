@@ -11,6 +11,7 @@ import { AuthService } from './core/services/auth.service';
 })
 export class App {
   readonly auth = inject(AuthService);
+  readonly isLoggedIn = this.auth.isLoggedIn();
 
   menuItems = [
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },

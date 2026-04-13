@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CandidateService } from '../../core/services/candidate.service';
 import { LookupService } from '../../core/services/lookup.service';
 import { Candidate } from '../../core/models/candidate.model';
@@ -16,6 +16,11 @@ import { LookupValue } from '../../core/models/lookup.model';
 export class CandidatesComponent implements OnInit {
   private readonly candidateService = inject(CandidateService);
   private readonly lookupService = inject(LookupService);
+
+  constructor() {
+    const router = inject(Router);
+    router.routeReuseStrategy.shouldReuseRoute = () => false;
+  }
 
   search = '';
   candidates: Candidate[] = [];
@@ -33,13 +38,18 @@ export class CandidatesComponent implements OnInit {
   newPhone = '';
 
   ngOnInit(): void {
+    console.log('Candidates component loaded');
+
+    this.loading = true;
+
     this.lookupService.getByCategory('CandidateStatus').subscribe({
       next: (vals) => (this.statuses = vals),
     });
 
     this.candidateService.getAll().subscribe({
       next: (page) => {
-        this.candidates = page.items;
+        console.log('API response received');
+        this.candidates = [...page.items];
         this.loading = false;
       },
       error: () => {

@@ -18,6 +18,7 @@ public class GetCandidatesHandler : IRequestHandler<GetCandidatesQuery, Paginate
     public async Task<PaginatedList<CandidateDto>> Handle(GetCandidatesQuery request, CancellationToken ct)
     {
         var query = _context.Candidates
+            .AsNoTracking()
             .Where(c => !c.IsDeleted)
             .OrderByDescending(c => c.CreatedAt);
 

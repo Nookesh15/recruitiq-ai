@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using RecruitIQ.Application.JobApplications.Commands.CreateJobApplication;
 using RecruitIQ.Application.JobApplications.Queries.GetApplicationsByCandidate;
+using RecruitIQ.Application.JobApplications.Queries.GetApplicationsByJob;
 
 namespace RecruitIQ.API.Controllers;
 
@@ -20,6 +21,13 @@ public class JobApplicationsController : ControllerBase
     public async Task<IActionResult> GetByCandidate(Guid candidateId, CancellationToken ct = default)
     {
         var result = await _mediator.Send(new GetApplicationsByCandidateQuery(candidateId), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("job/{jobId:guid}")]
+    public async Task<IActionResult> GetByJob(Guid jobId, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetApplicationsByJobQuery(jobId), ct);
         return Ok(result);
     }
 

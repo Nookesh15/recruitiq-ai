@@ -18,7 +18,7 @@ public class GetJobPostingsHandler : IRequestHandler<GetJobPostingsQuery, Pagina
     public async Task<PaginatedList<JobPostingDto>> Handle(GetJobPostingsQuery request, CancellationToken ct)
     {
         var query = _context.JobPostings
-            .Include(j => j.Applications)
+            .AsNoTracking()
             .OrderByDescending(j => j.CreatedAt);
 
         var total = await query.CountAsync(ct);
@@ -28,7 +28,9 @@ public class GetJobPostingsHandler : IRequestHandler<GetJobPostingsQuery, Pagina
             .Take(request.PageSize)
             .Select(j => new JobPostingDto(
                 j.Id, j.Title, j.Description, j.Department,
-                j.Location, j.Status, j.Applications.Count, j.CreatedAt))
+                j.Location, j.Status,
+                j.Applications.Count(a => !a.IsDeleted),
+                j.CreatedAt))
             .ToListAsync(ct);
 
         return new PaginatedList<JobPostingDto>(items, total, request.Page, request.PageSize);

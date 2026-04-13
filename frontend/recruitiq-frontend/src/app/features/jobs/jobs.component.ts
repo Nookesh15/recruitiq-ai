@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { JobPostingService } from '../../core/services/job-posting.service';
 import { LookupService } from '../../core/services/lookup.service';
 import { JobPosting } from '../../core/models/job-posting.model';
@@ -15,6 +16,7 @@ import { LookupValue } from '../../core/models/lookup.model';
 export class JobsComponent implements OnInit {
   private readonly jobService = inject(JobPostingService);
   private readonly lookupService = inject(LookupService);
+  private readonly router = inject(Router);
 
   jobs: JobPosting[] = [];
   departments: LookupValue[] = [];
@@ -81,6 +83,15 @@ export class JobsComponent implements OnInit {
         if (idx !== -1) this.jobs[idx] = updated;
       },
     });
+  }
+
+  viewApplicants(job: JobPosting): void {
+    this.router.navigate(['/jobs', job.id, 'applicants']);
+  }
+
+  copyApplyLink(job: JobPosting): void {
+    const url = `${window.location.origin}/apply/${job.id}`;
+    navigator.clipboard.writeText(url);
   }
 
   closeModal(): void {

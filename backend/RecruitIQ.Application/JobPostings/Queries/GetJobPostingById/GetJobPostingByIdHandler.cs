@@ -17,15 +17,19 @@ public class GetJobPostingByIdHandler : IRequestHandler<GetJobPostingByIdQuery, 
 
     public async Task<Result<JobPostingDto>> Handle(GetJobPostingByIdQuery request, CancellationToken ct)
     {
-        var job = await _context.JobPostings
-            .Include(j => j.Applications)
-            .FirstOrDefaultAsync(j => j.Id == request.Id, ct);
+        var dto = await _context.JobPostings
+            .AsNoTracking()
+            .Where(j => j.Id == request.Id)
+            .Select(j => new JobPostingDto(
+                j.Id, j.Title, j.Description, j.Department,
+                j.Location, j.Status,
+                j.Applications.Count(a => !a.IsDeleted),
+                j.CreatedAt))
+            .FirstOrDefaultAsync(ct);
 
-        if (job is null)
+        if (dto is null)
             return Result<JobPostingDto>.Failure("Job posting not found.");
 
-        return Result<JobPostingDto>.Success(new JobPostingDto(
-            job.Id, job.Title, job.Description, job.Department,
-            job.Location, job.Status, job.Applications.Count, job.CreatedAt));
+        return Result<JobPostingDto>.Success(dto);
     }
 }
