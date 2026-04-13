@@ -14,11 +14,13 @@ public class ApplyToJobHandler : IRequestHandler<ApplyToJobCommand, Result<Apply
     private static readonly JsonSerializerOptions _opts = new(JsonSerializerDefaults.Web);
     private readonly IApplicationDbContext _context;
     private readonly IAiEngineService _aiEngine;
+    private readonly IEmailService _email;
 
-    public ApplyToJobHandler(IApplicationDbContext context, IAiEngineService aiEngine)
+    public ApplyToJobHandler(IApplicationDbContext context, IAiEngineService aiEngine, IEmailService email)
     {
         _context = context;
         _aiEngine = aiEngine;
+        _email = email;
     }
 
     public async Task<Result<ApplyToJobDto>> Handle(ApplyToJobCommand request, CancellationToken ct)
@@ -112,6 +114,12 @@ public class ApplyToJobHandler : IRequestHandler<ApplyToJobCommand, Result<Apply
 
         await _context.JobApplications.AddAsync(application, ct);
         await _context.SaveChangesAsync(ct);
+
+        // Fire-and-forget confirmation email — does not block the response
+        _email.SendApplicationConfirmation(
+            candidate.Email,
+            $"{candidate.FirstName} {candidate.LastName}",
+            job.Title);
 
         return Result<ApplyToJobDto>.Success(new ApplyToJobDto(
             application.Id,

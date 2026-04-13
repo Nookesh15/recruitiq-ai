@@ -12,10 +12,12 @@ public class UpdateStageHandler : IRequestHandler<UpdateStageCommand, Result<Job
         ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
 
     private readonly IApplicationDbContext _context;
+    private readonly IEmailService _email;
 
-    public UpdateStageHandler(IApplicationDbContext context)
+    public UpdateStageHandler(IApplicationDbContext context, IEmailService email)
     {
         _context = context;
+        _email = email;
     }
 
     public async Task<Result<JobApplicationDto>> Handle(UpdateStageCommand request, CancellationToken ct)
@@ -31,8 +33,19 @@ public class UpdateStageHandler : IRequestHandler<UpdateStageCommand, Result<Job
         if (application is null)
             return Result<JobApplicationDto>.Failure("Application not found.");
 
+        var previousStage = application.Stage;
         application.Stage = request.Stage;
         await _context.SaveChangesAsync(ct);
+
+        // Fire-and-forget stage-change notification (skip "Applied" self-notifications)
+        if (request.Stage != previousStage && request.Stage != "Applied")
+        {
+            _email.SendStageChange(
+                application.Candidate.Email,
+                $"{application.Candidate.FirstName} {application.Candidate.LastName}",
+                application.JobPosting.Title,
+                request.Stage);
+        }
 
         return Result<JobApplicationDto>.Success(application.ToDto());
     }

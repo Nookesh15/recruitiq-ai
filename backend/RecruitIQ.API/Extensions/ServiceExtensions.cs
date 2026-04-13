@@ -29,6 +29,7 @@ public static class ServiceExtensions
         services.AddScoped<IJwtService, JwtService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddSingleton<IEmailService, SmtpEmailService>();
 
         return services;
     }
