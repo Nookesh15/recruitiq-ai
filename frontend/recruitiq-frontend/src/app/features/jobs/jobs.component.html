@@ -96,7 +96,28 @@
         <div>
           <label class="block text-xs font-medium text-gray-600 mb-1">Description *</label>
           <textarea [(ngModel)]="newDescription" rows="4" placeholder="Job description and requirements..."
+                    (ngModelChange)="onDescriptionChange($event)"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300 resize-none"></textarea>
+
+          <!-- Bias warnings -->
+          @if (biasFlags.length && !biasDismissed) {
+            <div class="mt-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div class="flex items-start justify-between mb-2">
+                <p class="text-xs font-semibold text-amber-700">⚠ Potential bias detected ({{ biasFlags.length }} flag{{ biasFlags.length > 1 ? 's' : '' }})</p>
+                <button (click)="biasDismissed = true" class="text-xs text-amber-500 hover:text-amber-700 ml-2">Dismiss</button>
+              </div>
+              <ul class="space-y-2">
+                @for (flag of biasFlags; track flag.phrase) {
+                  <li class="text-xs">
+                    <span class="font-medium text-amber-800">"{{ flag.phrase }}"</span>
+                    <span class="text-amber-600 mx-1">·</span>
+                    <span class="text-amber-700 italic">{{ flag.category }}</span>
+                    <p class="text-gray-500 mt-0.5">{{ flag.suggestion }}</p>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
         </div>
       </div>
 

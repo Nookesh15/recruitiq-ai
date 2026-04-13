@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import health, scoring, parsing
+from app.api.routes import health, scoring, parsing, bias
 from app.core.config import settings
 
 
@@ -36,3 +36,4 @@ app.add_middleware(
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(scoring.router, prefix="/api/v1")
 app.include_router(parsing.router, prefix="/api/v1")
+app.include_router(bias.router, prefix="/api/v1")

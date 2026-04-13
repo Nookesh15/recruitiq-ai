@@ -17,8 +17,13 @@ public record ScoreResult(
     List<string> Gaps
 );
 
+public record BiasFlag(string Phrase, string Category, string Suggestion);
+
+public record JdAnalysisResult(int FlagCount, List<BiasFlag> BiasFlags, bool IsClean);
+
 public interface IAiEngineService
 {
     Task<ScoreResult?> ScoreResumeAsync(string candidateId, string resumeText, CancellationToken ct = default);
     Task<ResumeParseResult?> ParseResumeAsync(string candidateId, string resumeText, CancellationToken ct = default);
+    Task<JdAnalysisResult?> AnalyzeJdAsync(string jdText, CancellationToken ct = default);
 }

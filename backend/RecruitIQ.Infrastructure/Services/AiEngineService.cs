@@ -72,6 +72,31 @@ public class AiEngineService : IAiEngineService
         }
     }
 
+    public async Task<JdAnalysisResult?> AnalyzeJdAsync(string jdText, CancellationToken ct = default)
+    {
+        try
+        {
+            var payload = new { jd_text = jdText };
+            var response = await _http.PostAsJsonAsync("/api/v1/analyze-jd", payload, ct);
+            if (!response.IsSuccessStatusCode) return null;
+
+            var result = await response.Content.ReadFromJsonAsync<AiJdAnalysis>(cancellationToken: ct);
+            if (result is null) return null;
+
+            return new JdAnalysisResult(
+                FlagCount: result.flag_count,
+                BiasFlags: result.bias_flags
+                    .Select(f => new BiasFlag(f.phrase, f.category, f.suggestion))
+                    .ToList(),
+                IsClean: result.is_clean
+            );
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     // ── Internal JSON mapping records ──────────────────────────────────────
     private record AiScoreResult(
         double overall_score,
@@ -88,6 +113,14 @@ public class AiEngineService : IAiEngineService
     );
 
     private record AiExperience(string role, string company, string duration);
+
+    private record AiJdAnalysis(
+        int flag_count,
+        List<AiBiasFlag> bias_flags,
+        bool is_clean
+    );
+
+    private record AiBiasFlag(string phrase, string category, string suggestion);
 
     private record AiEducation(
         string degree,

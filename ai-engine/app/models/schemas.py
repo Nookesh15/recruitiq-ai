@@ -54,6 +54,24 @@ class ParseResumeResponse(BaseModel):
     parsed_at: str = Field(..., description="ISO 8601 timestamp of when parsing ran")
 
 
+# ── Bias detection schemas ────────────────────────────────────────────────────
+
+class BiasFlag(BaseModel):
+    phrase: str = Field(..., description="The flagged word or phrase found in the JD")
+    category: str = Field(..., description="Bias category e.g. 'Gender-coded (masculine)', 'Age bias'")
+    suggestion: str = Field(..., description="Suggested rewrite guidance")
+
+
+class AnalyzeJdRequest(BaseModel):
+    jd_text: str = Field(..., min_length=10, description="Raw job description text to analyse")
+
+
+class AnalyzeJdResponse(BaseModel):
+    flag_count: int = Field(..., description="Total number of bias flags detected")
+    bias_flags: list[BiasFlag] = Field(default_factory=list)
+    is_clean: bool = Field(..., description="True if no bias flags were found")
+
+
 # ── Health schema ─────────────────────────────────────────────────────────────
 
 class HealthResponse(BaseModel):

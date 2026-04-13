@@ -2,8 +2,10 @@ import { Component, OnInit, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { debounceTime, distinctUntilChanged, Subject, switchMap } from 'rxjs';
 import { JobPostingService } from '../../core/services/job-posting.service';
 import { LookupService } from '../../core/services/lookup.service';
+import { AiService, BiasFlag } from '../../core/services/ai.service';
 import { JobPosting } from '../../core/models/job-posting.model';
 import { LookupValue } from '../../core/models/lookup.model';
 
@@ -16,7 +18,9 @@ import { LookupValue } from '../../core/models/lookup.model';
 export class JobsComponent implements OnInit {
   private readonly jobService = inject(JobPostingService);
   private readonly lookupService = inject(LookupService);
+  private readonly aiService = inject(AiService);
   private readonly router = inject(Router);
+  private readonly jdChange$ = new Subject<string>();
 
   jobs: JobPosting[] = [];
   departments: LookupValue[] = [];
@@ -30,9 +34,21 @@ export class JobsComponent implements OnInit {
   newDepartment = '';
   newLocation = '';
   newDescription = '';
+  biasFlags: BiasFlag[] = [];
+  biasDismissed = false;
 
   ngOnInit(): void {
     this.lookupService.getByCategory('Department').subscribe(d => (this.departments = d));
+
+    // Debounced bias check as description is typed
+    this.jdChange$.pipe(
+      debounceTime(700),
+      distinctUntilChanged(),
+      switchMap(text => this.aiService.analyzeJd(text)),
+    ).subscribe({
+      next: (result) => { this.biasFlags = result.biasFlags; this.biasDismissed = false; },
+      error: () => { this.biasFlags = []; },
+    });
     this.jobService.getAll().subscribe({
       next: (p) => {
         this.jobs = p.items;
@@ -94,9 +110,16 @@ export class JobsComponent implements OnInit {
     navigator.clipboard.writeText(url);
   }
 
+  onDescriptionChange(value: string): void {
+    if (value.trim().length >= 20) this.jdChange$.next(value);
+    else this.biasFlags = [];
+  }
+
   closeModal(): void {
     this.showAddModal = false;
     this.addError = '';
+    this.biasFlags = [];
+    this.biasDismissed = false;
     this.newTitle = this.newDepartment = this.newLocation = this.newDescription = '';
   }
 }
