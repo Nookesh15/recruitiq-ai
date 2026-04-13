@@ -1,17 +1,21 @@
 """
-RIQAI-18: Structured resume parsing
+RIQAI-18/29: Structured resume parsing
 Extracts skills, work experience, education, and a summary from raw resume text.
-Uses regex + curated pattern matching — no external API required.
+Uses LLM when configured, falls back to regex + curated pattern matching.
 """
 from __future__ import annotations
 
+import json
+import logging
 import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter
 
+from app.core.llm_client import llm_complete
 from app.models.schemas import ParseResumeRequest, ParseResumeResponse, ParsedExperience, ParsedEducation
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # ── Curated tech / professional skills list ───────────────────────────────────
@@ -245,6 +249,78 @@ def _extract_summary(text: str) -> str:
     return " ".join(paragraph)[:500] if paragraph else ""
 
 
+# ── LLM parsing ───────────────────────────────────────────────────────────────
+
+async def _llm_parse(request: ParseResumeRequest) -> ParseResumeResponse | None:
+    """Use LLM for structured extraction. Returns None if LLM unavailable."""
+    prompt = f"""You are a resume parser. Extract structured information from the resume below and return ONLY valid JSON.
+
+Resume:
+{request.resume_text[:4000]}
+
+Return a JSON object with these exact keys:
+{{
+  "skills": ["skill1", "skill2", ...],
+  "experience": [
+    {{"role": "Job Title", "company": "Company Name", "duration": "Jan 2020 - Mar 2023"}},
+    ...
+  ],
+  "education": [
+    {{"degree": "Bachelor's", "field": "Computer Science", "institution": "MIT", "year": "2018"}},
+    ...
+  ],
+  "summary": "<2-3 sentence professional summary>"
+}}
+
+Rules:
+- skills: list of technologies, languages, frameworks, tools (strings only)
+- experience: up to 6 most recent entries; omit unknown fields as empty string
+- education: up to 4 entries; omit unknown fields as null
+- summary: concise professional overview based on the resume content
+- Respond with JSON only, no markdown, no explanation."""
+
+    raw = await llm_complete(prompt)
+    if raw is None:
+        return None
+
+    try:
+        text = raw.strip()
+        if text.startswith("```"):
+            text = "\n".join(text.split("\n")[1:])
+            text = text.rsplit("```", 1)[0]
+        data = json.loads(text)
+
+        experience = [
+            ParsedExperience(
+                role=e.get("role", ""),
+                company=e.get("company", ""),
+                duration=e.get("duration", ""),
+            )
+            for e in data.get("experience", [])[:6]
+        ]
+        education = [
+            ParsedEducation(
+                degree=e.get("degree", ""),
+                field=e.get("field") or None,
+                institution=e.get("institution") or None,
+                year=str(e["year"]) if e.get("year") else None,
+            )
+            for e in data.get("education", [])[:4]
+        ]
+
+        return ParseResumeResponse(
+            candidate_id=request.candidate_id,
+            skills=data.get("skills", []),
+            experience=experience,
+            education=education,
+            summary=data.get("summary", ""),
+            parsed_at=datetime.now(timezone.utc).isoformat(),
+        )
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        logger.warning("Failed to parse LLM parse response: %s", exc)
+        return None
+
+
 # ── Route ─────────────────────────────────────────────────────────────────────
 
 @router.post("/parse", response_model=ParseResumeResponse, tags=["Parsing"])
@@ -252,9 +328,15 @@ async def parse_resume(request: ParseResumeRequest) -> ParseResumeResponse:
     """
     Extract structured sections from raw resume text.
 
-    Returns extracted skills, work experience entries, education entries,
-    and a professional summary. No external API — fully local pattern-based.
+    Uses LLM (OpenAI/Anthropic) when LLM_PROVIDER + LLM_API_KEY are configured.
+    Falls back to regex pattern-based extraction when LLM is unavailable.
     """
+    # Try LLM first
+    llm_result = await _llm_parse(request)
+    if llm_result is not None:
+        return llm_result
+
+    # Regex fallback
     skills = _extract_skills(request.resume_text)
     experience = _extract_experience(request.resume_text)
     education = _extract_education(request.resume_text)

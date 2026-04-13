@@ -1,10 +1,14 @@
+import json
+import logging
 import re
 
 from fastapi import APIRouter
 
 from app.core.config import settings
+from app.core.llm_client import llm_complete
 from app.models.schemas import ResumeScoreRequest, ResumeScoreResponse
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -59,15 +63,82 @@ def _education_score(resume_text: str) -> float:
     return 40.0
 
 
+async def _llm_score(request: ResumeScoreRequest) -> ResumeScoreResponse | None:
+    """
+    Ask the LLM to score the resume and return structured JSON.
+    Returns None if LLM is unavailable or response cannot be parsed.
+    """
+    skills_hint = (
+        f"Required skills: {', '.join(request.required_skills)}\n" if request.required_skills else ""
+    )
+    prompt = f"""You are a recruitment AI assistant. Evaluate this resume against the job description and return ONLY valid JSON.
+
+Job Description:
+{request.job_description[:2000]}
+
+{skills_hint}
+Resume:
+{request.resume_text[:3000]}
+
+Return a JSON object with these exact keys:
+{{
+  "overall_score": <integer 0-100>,
+  "skill_match_score": <integer 0-100>,
+  "experience_score": <integer 0-100>,
+  "education_score": <integer 0-100>,
+  "matched_skills": ["skill1", "skill2"],
+  "missing_skills": ["skill3", "skill4"],
+  "match_reason": "<2-3 sentence explanation of fit>",
+  "strengths": ["strength1", "strength2", "strength3"],
+  "gaps": ["gap1", "gap2"],
+  "summary": "<one sentence summary>"
+}}
+
+Respond with JSON only, no markdown, no explanation."""
+
+    raw = await llm_complete(prompt)
+    if raw is None:
+        return None
+
+    try:
+        # Strip markdown code fences if present
+        text = raw.strip()
+        if text.startswith("```"):
+            text = "\n".join(text.split("\n")[1:])
+            text = text.rsplit("```", 1)[0]
+        data = json.loads(text)
+        return ResumeScoreResponse(
+            candidate_id=request.candidate_id,
+            overall_score=min(max(float(data.get("overall_score", 50)), 0), 100),
+            skill_match_score=min(max(float(data.get("skill_match_score", 50)), 0), 100),
+            experience_score=min(max(float(data.get("experience_score", 50)), 0), 100),
+            education_score=min(max(float(data.get("education_score", 50)), 0), 100),
+            matched_skills=data.get("matched_skills", []),
+            missing_skills=data.get("missing_skills", []),
+            summary=data.get("summary", ""),
+            match_reason=data.get("match_reason", ""),
+            strengths=data.get("strengths", []),
+            gaps=data.get("gaps", []),
+        )
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        logger.warning("Failed to parse LLM score response: %s", exc)
+        return None
+
+
 @router.post("/score", response_model=ResumeScoreResponse, tags=["Scoring"])
 async def score_resume(request: ResumeScoreRequest) -> ResumeScoreResponse:
     """
     Score a candidate's resume against a job description.
 
-    Returns an overall AI score (0-100) and breakdowns by skill match,
-    experience, and education. This scaffold uses a term-overlap approach;
-    replace with an embedding model (sentence-transformers) for production.
+    Uses LLM (OpenAI/Anthropic) when LLM_PROVIDER + LLM_API_KEY are configured.
+    Falls back to regex/term-overlap scoring when LLM is unavailable.
     """
+    # Try LLM first
+    llm_result = await _llm_score(request)
+    if llm_result is not None:
+        return llm_result
+
+    # Regex fallback
     resume_tokens = _tokenize(request.resume_text)
 
     skill_score, matched_skills, missing_skills = _skill_match(
