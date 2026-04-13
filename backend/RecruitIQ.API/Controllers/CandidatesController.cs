@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using RecruitIQ.API.Services;
 using RecruitIQ.Application.Candidates.Commands.CreateCandidate;
 using RecruitIQ.Application.Candidates.Commands.DeleteCandidate;
 using RecruitIQ.Application.Candidates.Commands.UpdateCandidateStatus;
@@ -15,10 +17,12 @@ namespace RecruitIQ.API.Controllers;
 public class CandidatesController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<CandidatesController> _logger;
 
-    public CandidatesController(IMediator mediator)
+    public CandidatesController(IMediator mediator, ILogger<CandidatesController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -95,8 +99,8 @@ public class CandidatesController : ControllerBase
 
         var resumeUrl = $"/resumes/{fileName}";
 
-        // Extract basic text for AI scoring (PDF text extraction is optional here)
-        var resumeText = ext == ".pdf" ? "" : "";
+        // Extract text so the AI scoring + parsing pipeline fires
+        var resumeText = ResumeTextExtractor.Extract(filePath, ext, _logger);
 
         var result = await _mediator.Send(new UploadResumeCommand(id, resumeUrl, resumeText), ct);
         if (!result.IsSuccess) return NotFound(new { error = result.Error });
