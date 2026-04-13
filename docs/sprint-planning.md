@@ -76,50 +76,54 @@
 
 ---
 
-## Sprint 2 — Auth & Core API (Weeks 3–4)
+## Sprint 2 — Core Features (Weeks 3–4) ✅
 
-**Goal:** Authentication, user roles, core entity APIs.
+**Goal:** JWT auth, candidate/job management, resume AI scoring, public apply portal, dashboard.
 
-| # | Ticket | Layer | Points |
-|---|--------|-------|--------|
-| RIQAI-9 | JWT auth — register/login endpoints | backend | 5 |
-| RIQAI-10 | Role-based access (Admin, Recruiter, Candidate) | backend | 5 |
-| RIQAI-11 | Angular auth module + login page | frontend | 5 |
-| RIQAI-12 | Auth guard + token interceptor | frontend | 3 |
-| RIQAI-13 | Candidate CRUD API | backend | 5 |
-| RIQAI-14 | Job Posting CRUD API | backend | 5 |
+> Delivered ahead of schedule — Sprint 2 scope expanded to cover original Sprint 3 & 4 foundations.
 
-**Total:** 28 points
+| # | Ticket | Layer | Points | Status |
+|---|--------|-------|--------|--------|
+| RIQAI-9 | JWT authentication — login/register | backend | 5 | ✅ Done |
+| RIQAI-10 | Candidate management CRUD + detail page | backend+frontend | 8 | ✅ Done |
+| RIQAI-11 | Job Postings CRUD + status management | backend+frontend | 8 | ✅ Done |
+| RIQAI-12 | Resume upload + basic AI scoring | ai-engine+backend | 5 | ✅ Done |
+| RIQAI-13 | Job Applications tracking | backend+frontend | 5 | ✅ Done |
+| RIQAI-14 | Dashboard with real-time stats | backend+frontend | 5 | ✅ Done |
+| RIQAI-15 | Public job apply portal | backend+frontend | 5 | ✅ Done |
+| RIQAI-16 | Job applicants view ranked by AI score | backend+frontend | 3 | ✅ Done |
+| RIQAI-17 | Bug: candidate navigation double-click | frontend | 3 | ✅ Closed |
+
+**Total:** 47 points
 
 ---
 
 ## Sprint 3 — AI Resume Screening (Weeks 5–6)
 
-**Goal:** Upload resumes, AI parsing, candidate scoring against JD.
+**Goal:** Structured LLM parsing, match reasoning, bias detection, fix navigation bug.
 
-| # | Ticket | Layer | Points |
-|---|--------|-------|--------|
-| RIQAI-15 | Resume upload endpoint (PDF/DOCX) | backend | 3 |
-| RIQAI-16 | PDF/DOCX text extraction | ai-engine | 5 |
-| RIQAI-17 | LLM-based resume parser (skills, exp, education) | ai-engine | 8 |
-| RIQAI-18 | Candidate-to-JD scoring algorithm | ai-engine | 8 |
-| RIQAI-19 | Score results stored to PostgreSQL | backend | 3 |
-| RIQAI-20 | Resume upload UI + score display | frontend | 5 |
+| # | Ticket | Layer | Points | Issue |
+|---|--------|-------|--------|-------|
+| RIQAI-18 | Structured resume parsing (skills, experience, education) | ai-engine | 8 | #27 |
+| RIQAI-19 | AI match score with reasoning — explain candidate fit | ai-engine | 8 | #28 |
+| RIQAI-20 | Bias detection on job description text | ai-engine | 5 | #29 |
+| RIQAI-21 | Candidate detail — show parsed resume sections | frontend | 5 | #30 |
+| RIQAI-22 | Fix single-click candidate navigation bug | frontend | 3 | #31 |
 
-**Total:** 32 points
+**Total:** 29 points
 
 ---
 
 ## Sprint 4 — Dashboard & Analytics (Weeks 7–8)
 
-**Goal:** Recruiter dashboard, hiring funnel metrics, candidate pipeline view.
+**Goal:** Kanban pipeline, hiring funnel metrics, analytics charts, roles, notifications.
 
-| # | Ticket | Layer | Points |
-|---|--------|-------|--------|
-| RIQAI-21 | Dashboard layout + navigation | frontend | 3 |
-| RIQAI-22 | Candidate pipeline Kanban view | frontend | 8 |
-| RIQAI-23 | Hiring funnel metrics API | backend | 5 |
-| RIQAI-24 | Analytics charts (time-to-hire, source quality) | frontend | 5 |
-| RIQAI-25 | Bias detection flag on JD text | ai-engine | 5 |
+| # | Ticket | Layer | Points | Issue |
+|---|--------|-------|--------|-------|
+| RIQAI-23 | Candidate pipeline Kanban view (drag-and-drop) | frontend | 8 | #32 |
+| RIQAI-24 | Hiring funnel metrics API | backend | 5 | #33 |
+| RIQAI-25 | Analytics charts (funnel, time-to-hire, pipeline) | frontend | 5 | #34 |
+| RIQAI-26 | Role-based access control (Admin vs Recruiter) | backend | 5 | #35 |
+| RIQAI-27 | Email notifications (application events) | backend | 5 | #36 |
 
-**Total:** 26 points
+**Total:** 28 points
