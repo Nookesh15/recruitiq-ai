@@ -40,6 +40,10 @@ export const routes: Routes = [
         path: 'pipeline',
         loadComponent: () => import('./features/kanban/kanban.component').then(m => m.KanbanComponent),
       },
+      {
+        path: 'analytics',
+        loadComponent: () => import('./features/analytics/analytics.component').then(m => m.AnalyticsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

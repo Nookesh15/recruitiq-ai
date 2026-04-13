@@ -18,5 +18,6 @@ export class App {
     { label: 'Candidates', icon: '👤', route: '/candidates' },
     { label: 'Job Postings', icon: '💼', route: '/jobs' },
     { label: 'Pipeline', icon: '🗂', route: '/pipeline' },
+    { label: 'Analytics', icon: '📈', route: '/analytics' },
   ];
 }
