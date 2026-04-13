@@ -56,6 +56,7 @@ public class CreateJobApplicationHandler : IRequestHandler<CreateJobApplicationC
             application.CreatedAt,
             MatchReason: null,
             Strengths: null,
-            Gaps: null));
+            Gaps: null,
+            Stage: application.Stage));
     }
 }

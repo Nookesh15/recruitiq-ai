@@ -19,7 +19,8 @@ internal static class JobApplicationMappingExtensions
         a.CreatedAt,
         MatchReason: a.MatchReason,
         Strengths: Deserialize<List<string>>(a.StrengthsJson),
-        Gaps: Deserialize<List<string>>(a.GapsJson)
+        Gaps: Deserialize<List<string>>(a.GapsJson),
+        Stage: a.Stage
     );
 
     private static T? Deserialize<T>(string? json) where T : class

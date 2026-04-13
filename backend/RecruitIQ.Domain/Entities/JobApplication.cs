@@ -10,6 +10,7 @@ public class JobApplication : BaseEntity
 
     public double? MatchScore { get; set; }
     public string? Notes { get; set; }
+    public string Stage { get; set; } = "Applied"; // Applied | Screening | Interview | Offer | Hired | Rejected
 
     // RIQAI-19: AI match reasoning
     public string? MatchReason { get; set; }

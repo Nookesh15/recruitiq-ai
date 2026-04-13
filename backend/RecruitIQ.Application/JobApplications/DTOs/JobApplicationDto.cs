@@ -13,5 +13,7 @@ public record JobApplicationDto(
     // RIQAI-19: AI match reasoning
     string? MatchReason,
     List<string>? Strengths,
-    List<string>? Gaps
+    List<string>? Gaps,
+    // RIQAI-23: Kanban stage
+    string Stage = "Applied"
 );

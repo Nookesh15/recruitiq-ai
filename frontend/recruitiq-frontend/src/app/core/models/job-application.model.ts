@@ -12,4 +12,6 @@ export interface JobApplication {
   matchReason?: string;
   strengths?: string[];
   gaps?: string[];
+  // RIQAI-23: Kanban stage
+  stage?: string;
 }

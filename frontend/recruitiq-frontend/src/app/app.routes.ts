@@ -36,6 +36,10 @@ export const routes: Routes = [
         path: 'jobs/:id/applicants',
         loadComponent: () => import('./features/jobs/job-applicants.component').then(m => m.JobApplicantsComponent),
       },
+      {
+        path: 'pipeline',
+        loadComponent: () => import('./features/kanban/kanban.component').then(m => m.KanbanComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

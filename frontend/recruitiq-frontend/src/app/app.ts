@@ -17,5 +17,6 @@ export class App {
     { label: 'Dashboard', icon: '📊', route: '/dashboard' },
     { label: 'Candidates', icon: '👤', route: '/candidates' },
     { label: 'Job Postings', icon: '💼', route: '/jobs' },
+    { label: 'Pipeline', icon: '🗂', route: '/pipeline' },
   ];
 }

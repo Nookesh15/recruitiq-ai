@@ -27,4 +27,16 @@ export class JobApplicationService {
       notes,
     });
   }
+
+  getKanban(jobId?: string): Observable<JobApplication[]> {
+    const params = jobId ? `?jobId=${jobId}` : '';
+    return this.http.get<JobApplication[]>(`${environment.apiUrl}/jobapplications/kanban${params}`);
+  }
+
+  updateStage(applicationId: string, stage: string): Observable<JobApplication> {
+    return this.http.patch<JobApplication>(
+      `${environment.apiUrl}/jobapplications/${applicationId}/stage`,
+      { stage }
+    );
+  }
 }
