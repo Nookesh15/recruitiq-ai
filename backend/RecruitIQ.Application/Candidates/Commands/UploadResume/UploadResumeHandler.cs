@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RecruitIQ.Application.Candidates.DTOs;
@@ -8,6 +9,7 @@ namespace RecruitIQ.Application.Candidates.Commands.UploadResume;
 
 public class UploadResumeHandler : IRequestHandler<UploadResumeCommand, Result<CandidateDto>>
 {
+    private static readonly JsonSerializerOptions _opts = new(JsonSerializerDefaults.Web);
     private readonly IApplicationDbContext _context;
     private readonly IAiEngineService _aiEngine;
 
@@ -27,18 +29,30 @@ public class UploadResumeHandler : IRequestHandler<UploadResumeCommand, Result<C
 
         candidate.ResumeUrl = request.ResumeUrl;
 
-        // Fire AI scoring if resume text was extracted
         if (!string.IsNullOrWhiteSpace(request.ResumeText))
         {
-            var score = await _aiEngine.ScoreResumeAsync(
-                request.CandidateId.ToString(), request.ResumeText, ct);
-            candidate.AiScore = score;
+            var candidateIdStr = request.CandidateId.ToString();
+
+            // Run scoring and parsing in parallel
+            var scoreTask = _aiEngine.ScoreResumeAsync(candidateIdStr, request.ResumeText, ct);
+            var parseTask = _aiEngine.ParseResumeAsync(candidateIdStr, request.ResumeText, ct);
+
+            await Task.WhenAll(scoreTask, parseTask);
+
+            candidate.AiScore = scoreTask.Result;
+
+            var parsed = parseTask.Result;
+            if (parsed is not null)
+            {
+                candidate.ParsedSkillsJson = JsonSerializer.Serialize(parsed.Skills, _opts);
+                candidate.ParsedExperienceJson = JsonSerializer.Serialize(parsed.Experience, _opts);
+                candidate.ParsedEducationJson = JsonSerializer.Serialize(parsed.Education, _opts);
+                candidate.ParsedSummary = parsed.Summary;
+            }
         }
 
         await _context.SaveChangesAsync(ct);
 
-        return Result<CandidateDto>.Success(new CandidateDto(
-            candidate.Id, candidate.FirstName, candidate.LastName, candidate.Email,
-            candidate.Phone, candidate.ResumeUrl, candidate.Status, candidate.AiScore, candidate.CreatedAt));
+        return Result<CandidateDto>.Success(candidate.ToDto());
     }
 }

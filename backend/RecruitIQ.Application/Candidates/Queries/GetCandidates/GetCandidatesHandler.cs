@@ -24,13 +24,12 @@ public class GetCandidatesHandler : IRequestHandler<GetCandidatesQuery, Paginate
 
         var total = await query.CountAsync(ct);
 
-        var items = await query
+        var rawItems = await query
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(c => new CandidateDto(
-                c.Id, c.FirstName, c.LastName, c.Email,
-                c.Phone, c.ResumeUrl, c.Status, c.AiScore, c.CreatedAt))
             .ToListAsync(ct);
+
+        var items = rawItems.Select(c => c.ToDto()).ToList();
 
         return new PaginatedList<CandidateDto>(items, total, request.Page, request.PageSize);
     }

@@ -12,5 +12,11 @@ public class Candidate : BaseEntity
     public CandidateStatus Status { get; set; } = CandidateStatus.Applied;
     public double? AiScore { get; set; }
 
+    // Structured resume sections populated by AI engine (RIQAI-18)
+    public string? ParsedSkillsJson { get; set; }      // JSON array of skill strings
+    public string? ParsedExperienceJson { get; set; }  // JSON array of {role, company, duration}
+    public string? ParsedEducationJson { get; set; }   // JSON array of {degree, field, institution, year}
+    public string? ParsedSummary { get; set; }
+
     public ICollection<JobApplication> Applications { get; set; } = [];
 }

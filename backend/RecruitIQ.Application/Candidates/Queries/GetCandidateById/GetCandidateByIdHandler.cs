@@ -24,8 +24,6 @@ public class GetCandidateByIdHandler : IRequestHandler<GetCandidateByIdQuery, Re
         if (c is null)
             return Result<CandidateDto>.Failure("Candidate not found.");
 
-        return Result<CandidateDto>.Success(new CandidateDto(
-            c.Id, c.FirstName, c.LastName, c.Email,
-            c.Phone, c.ResumeUrl, c.Status, c.AiScore, c.CreatedAt));
+        return Result<CandidateDto>.Success(c.ToDto());
     }
 }

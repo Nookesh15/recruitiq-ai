@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RecruitIQ.Application.Common.Interfaces;
@@ -10,6 +11,7 @@ namespace RecruitIQ.Application.JobApplications.Commands.ApplyToJob;
 
 public class ApplyToJobHandler : IRequestHandler<ApplyToJobCommand, Result<ApplyToJobDto>>
 {
+    private static readonly JsonSerializerOptions _opts = new(JsonSerializerDefaults.Web);
     private readonly IApplicationDbContext _context;
     private readonly IAiEngineService _aiEngine;
 
@@ -63,13 +65,27 @@ public class ApplyToJobHandler : IRequestHandler<ApplyToJobCommand, Result<Apply
         if (alreadyApplied)
             return Result<ApplyToJobDto>.Failure("You have already applied to this position.");
 
-        // Run AI scoring
+        // Run AI scoring + parsing in parallel
         int? aiScore = null;
         if (!string.IsNullOrWhiteSpace(request.ResumeText))
         {
-            var raw = await _aiEngine.ScoreResumeAsync(candidate.Id.ToString(), request.ResumeText, ct);
+            var candidateIdStr = candidate.Id.ToString();
+            var scoreTask = _aiEngine.ScoreResumeAsync(candidateIdStr, request.ResumeText, ct);
+            var parseTask = _aiEngine.ParseResumeAsync(candidateIdStr, request.ResumeText, ct);
+            await Task.WhenAll(scoreTask, parseTask);
+
+            var raw = scoreTask.Result;
             aiScore = raw.HasValue ? (int)Math.Round(raw.Value) : null;
             candidate.AiScore = aiScore;
+
+            var parsed = parseTask.Result;
+            if (parsed is not null)
+            {
+                candidate.ParsedSkillsJson = JsonSerializer.Serialize(parsed.Skills, _opts);
+                candidate.ParsedExperienceJson = JsonSerializer.Serialize(parsed.Experience, _opts);
+                candidate.ParsedEducationJson = JsonSerializer.Serialize(parsed.Education, _opts);
+                candidate.ParsedSummary = parsed.Summary;
+            }
         }
 
         // Create the application

@@ -26,8 +26,6 @@ public class UpdateCandidateStatusHandler : IRequestHandler<UpdateCandidateStatu
         candidate.Status = request.Status;
         await _context.SaveChangesAsync(ct);
 
-        return Result<CandidateDto>.Success(new CandidateDto(
-            candidate.Id, candidate.FirstName, candidate.LastName, candidate.Email,
-            candidate.Phone, candidate.ResumeUrl, candidate.Status, candidate.AiScore, candidate.CreatedAt));
+        return Result<CandidateDto>.Success(candidate.ToDto());
     }
 }
