@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CandidateService } from '../../core/services/candidate.service';
 import { LookupService } from '../../core/services/lookup.service';
 import { Candidate } from '../../core/models/candidate.model';
@@ -10,17 +10,13 @@ import { LookupValue } from '../../core/models/lookup.model';
 @Component({
   selector: 'app-candidates',
   standalone: true,
-  imports: [NgClass, FormsModule, RouterLink],
+  imports: [NgClass, FormsModule],
   templateUrl: './candidates.component.html',
 })
 export class CandidatesComponent implements OnInit {
   private readonly candidateService = inject(CandidateService);
   private readonly lookupService = inject(LookupService);
-
-  constructor() {
-    const router = inject(Router);
-    router.routeReuseStrategy.shouldReuseRoute = () => false;
-  }
+  private readonly router = inject(Router);
 
   search = '';
   candidates: Candidate[] = [];
@@ -38,18 +34,13 @@ export class CandidatesComponent implements OnInit {
   newPhone = '';
 
   ngOnInit(): void {
-    console.log('Candidates component loaded');
-
-    this.loading = true;
-
     this.lookupService.getByCategory('CandidateStatus').subscribe({
       next: (vals) => (this.statuses = vals),
     });
 
     this.candidateService.getAll().subscribe({
       next: (page) => {
-        console.log('API response received');
-        this.candidates = [...page.items];
+        this.candidates = page.items;
         this.loading = false;
       },
       error: () => {
@@ -57,6 +48,10 @@ export class CandidatesComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  navigateTo(c: Candidate): void {
+    this.router.navigate(['/candidates', c.id], { state: { candidate: c } });
   }
 
   get filtered(): Candidate[] {

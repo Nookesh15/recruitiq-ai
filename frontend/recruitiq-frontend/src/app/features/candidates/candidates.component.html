@@ -39,8 +39,7 @@
       </thead>
       <tbody class="divide-y divide-gray-50">
         @for (c of filtered; track c.id) {
-          <tr [routerLink]="['/candidates', c.id]" [state]="{ candidate: c }"
-              class="hover:bg-indigo-50 transition-colors cursor-pointer">
+          <tr (click)="navigateTo(c)" class="hover:bg-indigo-50 transition-colors cursor-pointer">
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
