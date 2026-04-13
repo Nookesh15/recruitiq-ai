@@ -18,20 +18,14 @@ public class GetApplicationsByCandidateHandler
     public async Task<IReadOnlyList<JobApplicationDto>> Handle(
         GetApplicationsByCandidateQuery request, CancellationToken ct)
     {
-        return await _context.JobApplications
+        var applications = await _context.JobApplications
             .AsNoTracking()
+            .Include(a => a.Candidate)
+            .Include(a => a.JobPosting)
             .Where(a => a.CandidateId == request.CandidateId)
             .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new JobApplicationDto(
-                a.Id,
-                a.Candidate.Id,
-                $"{a.Candidate.FirstName} {a.Candidate.LastName}",
-                a.Candidate.Email,
-                a.JobPosting.Id,
-                a.JobPosting.Title,
-                a.MatchScore,
-                a.Notes,
-                a.CreatedAt))
             .ToListAsync(ct);
+
+        return applications.Select(a => a.ToDto()).ToList();
     }
 }

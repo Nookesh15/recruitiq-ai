@@ -92,6 +92,11 @@ async def score_resume(request: ResumeScoreRequest) -> ResumeScoreResponse:
         f"Overall AI score: {overall}/100."
     ) if request.required_skills else f"JD similarity score: {jd_overlap}/100. Overall: {overall}/100."
 
+    match_reason, strengths, gaps = _build_reasoning(
+        overall, blended_skill, exp_score, edu_score,
+        matched_skills, missing_skills, jd_overlap,
+    )
+
     return ResumeScoreResponse(
         candidate_id=request.candidate_id,
         overall_score=overall,
@@ -101,4 +106,88 @@ async def score_resume(request: ResumeScoreRequest) -> ResumeScoreResponse:
         matched_skills=matched_skills,
         missing_skills=missing_skills,
         summary=summary,
+        match_reason=match_reason,
+        strengths=strengths,
+        gaps=gaps,
     )
+
+
+def _build_reasoning(
+    overall: float,
+    skill_score: float,
+    exp_score: float,
+    edu_score: float,
+    matched_skills: list[str],
+    missing_skills: list[str],
+    jd_overlap: float,
+) -> tuple[str, list[str], list[str]]:
+    """
+    Generate a human-readable fit explanation, strengths list, and gaps list
+    from the component scores — no external LLM required.
+    """
+    strengths: list[str] = []
+    gaps: list[str] = []
+
+    # ── Strengths ─────────────────────────────────────────────────────────────
+    if skill_score >= 70:
+        top = matched_skills[:4]
+        strengths.append(f"Strong skill alignment — demonstrates {', '.join(top)}" if top else "Strong overall skill match")
+    elif skill_score >= 40:
+        top = matched_skills[:3]
+        if top:
+            strengths.append(f"Partial skill match — covers {', '.join(top)}")
+
+    if exp_score >= 80:
+        strengths.append("Substantial work experience relevant to the role")
+    elif exp_score >= 55:
+        strengths.append("Moderate level of relevant experience")
+
+    if edu_score >= 85:
+        strengths.append("Advanced academic background (Master's or PhD)")
+    elif edu_score >= 70:
+        strengths.append("Relevant educational qualification")
+
+    if jd_overlap >= 60:
+        strengths.append("Resume language closely aligns with the job description")
+
+    # ── Gaps ──────────────────────────────────────────────────────────────────
+    if missing_skills:
+        listed = missing_skills[:4]
+        gaps.append(f"Missing required skills: {', '.join(listed)}" + (" and others" if len(missing_skills) > 4 else ""))
+
+    if exp_score < 40:
+        gaps.append("Limited or unclear work experience")
+
+    if edu_score < 50:
+        gaps.append("Educational background may not meet role requirements")
+
+    if skill_score < 30 and jd_overlap < 20:
+        gaps.append("Resume content does not closely match the job description")
+
+    # ── Narrative sentence ────────────────────────────────────────────────────
+    if overall >= 75:
+        fit_level = "strong"
+        tone = "Highly recommended for further consideration."
+    elif overall >= 50:
+        fit_level = "moderate"
+        tone = "Worth reviewing — shows relevant potential."
+    elif overall >= 30:
+        fit_level = "partial"
+        tone = "May be considered for junior or adjacent roles."
+    else:
+        fit_level = "weak"
+        tone = "Does not closely match the current requirement."
+
+    skill_sentence = (
+        f"The candidate matches {len(matched_skills)} of {len(matched_skills) + len(missing_skills)} required skills."
+        if (matched_skills or missing_skills)
+        else f"JD content overlap is {jd_overlap:.0f}%."
+    )
+
+    match_reason = (
+        f"This candidate shows a {fit_level} fit for the role with an AI score of {overall:.0f}/100. "
+        f"{skill_sentence} "
+        f"{tone}"
+    )
+
+    return match_reason, strengths[:5], gaps[:4]

@@ -39,7 +39,7 @@ public class UploadResumeHandler : IRequestHandler<UploadResumeCommand, Result<C
 
             await Task.WhenAll(scoreTask, parseTask);
 
-            candidate.AiScore = scoreTask.Result;
+            candidate.AiScore = scoreTask.Result?.Score;
 
             var parsed = parseTask.Result;
             if (parsed is not null)

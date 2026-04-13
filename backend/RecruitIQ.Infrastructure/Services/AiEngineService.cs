@@ -13,7 +13,7 @@ public class AiEngineService : IAiEngineService
         _http = http;
     }
 
-    public async Task<double?> ScoreResumeAsync(string candidateId, string resumeText, CancellationToken ct = default)
+    public async Task<ScoreResult?> ScoreResumeAsync(string candidateId, string resumeText, CancellationToken ct = default)
     {
         try
         {
@@ -29,7 +29,14 @@ public class AiEngineService : IAiEngineService
             if (!response.IsSuccessStatusCode) return null;
 
             var result = await response.Content.ReadFromJsonAsync<AiScoreResult>(cancellationToken: ct);
-            return result?.overall_score;
+            if (result is null) return null;
+
+            return new ScoreResult(
+                Score: result.overall_score,
+                MatchReason: result.match_reason ?? string.Empty,
+                Strengths: result.strengths ?? [],
+                Gaps: result.gaps ?? []
+            );
         }
         catch
         {
@@ -66,7 +73,12 @@ public class AiEngineService : IAiEngineService
     }
 
     // ── Internal JSON mapping records ──────────────────────────────────────
-    private record AiScoreResult(double overall_score);
+    private record AiScoreResult(
+        double overall_score,
+        string? match_reason,
+        List<string>? strengths,
+        List<string>? gaps
+    );
 
     private record AiParseResult(
         List<string> skills,

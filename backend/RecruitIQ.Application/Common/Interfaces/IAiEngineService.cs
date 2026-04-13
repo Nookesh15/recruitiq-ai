@@ -10,8 +10,15 @@ public record ResumeParseResult(
     string Summary
 );
 
+public record ScoreResult(
+    double Score,
+    string MatchReason,
+    List<string> Strengths,
+    List<string> Gaps
+);
+
 public interface IAiEngineService
 {
-    Task<double?> ScoreResumeAsync(string candidateId, string resumeText, CancellationToken ct = default);
+    Task<ScoreResult?> ScoreResumeAsync(string candidateId, string resumeText, CancellationToken ct = default);
     Task<ResumeParseResult?> ParseResumeAsync(string candidateId, string resumeText, CancellationToken ct = default);
 }

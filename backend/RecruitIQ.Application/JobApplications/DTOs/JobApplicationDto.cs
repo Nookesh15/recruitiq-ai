@@ -9,5 +9,9 @@ public record JobApplicationDto(
     string JobTitle,
     double? MatchScore,
     string? Notes,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    // RIQAI-19: AI match reasoning
+    string? MatchReason,
+    List<string>? Strengths,
+    List<string>? Gaps
 );

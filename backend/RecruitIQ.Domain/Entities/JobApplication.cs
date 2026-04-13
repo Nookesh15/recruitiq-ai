@@ -10,4 +10,9 @@ public class JobApplication : BaseEntity
 
     public double? MatchScore { get; set; }
     public string? Notes { get; set; }
+
+    // RIQAI-19: AI match reasoning
+    public string? MatchReason { get; set; }
+    public string? StrengthsJson { get; set; }  // JSON array of strength strings
+    public string? GapsJson { get; set; }        // JSON array of gap strings
 }

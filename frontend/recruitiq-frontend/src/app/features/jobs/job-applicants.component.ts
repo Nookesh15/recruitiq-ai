@@ -21,6 +21,7 @@ export class JobApplicantsComponent implements OnInit {
   applicants: JobApplication[] = [];
   loading = true;
   error = '';
+  expandedId: string | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
@@ -62,6 +63,10 @@ export class JobApplicantsComponent implements OnInit {
 
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  toggleReason(id: string): void {
+    this.expandedId = this.expandedId === id ? null : id;
   }
 
   copyApplyLink(): void {

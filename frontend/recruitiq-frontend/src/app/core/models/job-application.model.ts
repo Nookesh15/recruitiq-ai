@@ -8,4 +8,8 @@ export interface JobApplication {
   matchScore?: number;
   notes?: string;
   createdAt: string;
+  // RIQAI-19: AI match reasoning
+  matchReason?: string;
+  strengths?: string[];
+  gaps?: string[];
 }

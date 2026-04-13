@@ -67,6 +67,10 @@ public class ApplyToJobHandler : IRequestHandler<ApplyToJobCommand, Result<Apply
 
         // Run AI scoring + parsing in parallel
         int? aiScore = null;
+        string? matchReason = null;
+        string? strengthsJson = null;
+        string? gapsJson = null;
+
         if (!string.IsNullOrWhiteSpace(request.ResumeText))
         {
             var candidateIdStr = candidate.Id.ToString();
@@ -74,9 +78,15 @@ public class ApplyToJobHandler : IRequestHandler<ApplyToJobCommand, Result<Apply
             var parseTask = _aiEngine.ParseResumeAsync(candidateIdStr, request.ResumeText, ct);
             await Task.WhenAll(scoreTask, parseTask);
 
-            var raw = scoreTask.Result;
-            aiScore = raw.HasValue ? (int)Math.Round(raw.Value) : null;
-            candidate.AiScore = aiScore;
+            var scoreResult = scoreTask.Result;
+            if (scoreResult is not null)
+            {
+                aiScore = (int)Math.Round(scoreResult.Score);
+                candidate.AiScore = aiScore;
+                matchReason = scoreResult.MatchReason;
+                strengthsJson = JsonSerializer.Serialize(scoreResult.Strengths, _opts);
+                gapsJson = JsonSerializer.Serialize(scoreResult.Gaps, _opts);
+            }
 
             var parsed = parseTask.Result;
             if (parsed is not null)
@@ -94,7 +104,10 @@ public class ApplyToJobHandler : IRequestHandler<ApplyToJobCommand, Result<Apply
             CandidateId = candidate.Id,
             JobPostingId = request.JobPostingId,
             MatchScore = aiScore,
-            Notes = "Applied via job portal"
+            Notes = "Applied via job portal",
+            MatchReason = matchReason,
+            StrengthsJson = strengthsJson,
+            GapsJson = gapsJson,
         };
 
         await _context.JobApplications.AddAsync(application, ct);

@@ -50,7 +50,7 @@ export class CandidateDetailComponent implements OnInit {
     // Show candidate instantly from router navigation state (passed from the list)
     const navState = history.state as { candidate?: ReturnType<typeof Object.assign> };
     if (navState?.candidate) {
-      this.candidate = navState.candidate as typeof this.candidate;
+      this.candidate = navState.candidate as Candidate;
       this.loading = false;
     }
 

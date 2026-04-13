@@ -19,6 +19,10 @@ class ResumeScoreResponse(BaseModel):
     matched_skills: list[str]
     missing_skills: list[str]
     summary: str
+    # RIQAI-19: match reasoning
+    match_reason: str = Field("", description="2-3 sentence human-readable fit explanation")
+    strengths: list[str] = Field(default_factory=list, description="Key candidate strengths for this role")
+    gaps: list[str] = Field(default_factory=list, description="Notable gaps or missing requirements")
 
 
 # ── Parsing schemas ───────────────────────────────────────────────────────────
