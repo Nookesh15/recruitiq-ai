@@ -127,3 +127,19 @@
 | RIQAI-27 | Email notifications (application events) | backend | 5 | #36 |
 
 **Total:** 28 points
+
+---
+
+## Sprint 5 — Quality & Deployment (Weeks 9–10)
+
+**Goal:** Fix the AI pipeline (PDF extraction), add real LLM intelligence, backend tests, form validation, and production deployment.
+
+| # | Ticket | Layer | Points | Issue |
+|---|--------|-------|--------|-------|
+| RIQAI-28 | PDF text extraction on resume upload | backend | 5 | #37 |
+| RIQAI-29 | LLM integration — OpenAI/Claude fallback in AI engine | ai-engine | 8 | #38 |
+| RIQAI-30 | Backend unit tests — xUnit for critical handlers | backend | 5 | #39 |
+| RIQAI-31 | Frontend form validation — reactive forms | frontend | 3 | #40 |
+| RIQAI-32 | Production deployment — Railway config + deploy guide | infra | 5 | #41 |
+
+**Total:** 26 points
