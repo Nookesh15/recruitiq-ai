@@ -32,6 +32,8 @@ export class CandidateDetailComponent implements OnInit {
   loading = true;
   error = '';
 
+  activeTab: 'resume' | 'applications' = 'resume';
+
   // Resume upload
   uploadingResume = false;
   resumeFile: File | null = null;

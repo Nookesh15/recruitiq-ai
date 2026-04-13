@@ -79,30 +79,131 @@
       </div>
     </div>
 
-    <!-- Applications Panel -->
+    <!-- Right panel: tabs -->
     <div class="xl:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm">
-      <div class="px-5 py-4 border-b border-gray-100">
-        <h3 class="font-semibold text-gray-800">Job Applications</h3>
-        <p class="text-xs text-gray-400 mt-0.5">{{ applications.length }} application(s)</p>
+
+      <!-- Tab bar -->
+      <div class="flex border-b border-gray-100">
+        <button (click)="activeTab = 'resume'"
+                class="px-5 py-3.5 text-sm font-medium border-b-2 transition-colors"
+                [ngClass]="activeTab === 'resume' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'">
+          Resume & AI Insights
+        </button>
+        <button (click)="activeTab = 'applications'"
+                class="px-5 py-3.5 text-sm font-medium border-b-2 transition-colors"
+                [ngClass]="activeTab === 'applications' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'">
+          Applications ({{ applications.length }})
+        </button>
       </div>
-      <div class="divide-y divide-gray-50">
-        @for (app of applications; track app.id) {
-          <div class="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50">
-            <div>
-              <p class="text-sm font-medium text-gray-800">{{ app.jobTitle }}</p>
-              <p class="text-xs text-gray-400">Applied {{ app.createdAt | date:'mediumDate' }}</p>
+
+      <!-- Resume tab -->
+      @if (activeTab === 'resume') {
+        <div class="p-5 space-y-5">
+
+          @if (!candidate.skills?.length && !candidate.experience?.length && !candidate.education?.length && !candidate.parsedSummary) {
+            <div class="py-10 text-center text-gray-400 text-sm">
+              <p class="text-2xl mb-2">📄</p>
+              <p>Resume not yet parsed.</p>
+              <p class="text-xs mt-1">Upload a resume using the panel on the left to extract AI insights.</p>
             </div>
-            @if (app.matchScore != null) {
-              <span class="text-sm font-bold text-indigo-600">{{ app.matchScore }}%</span>
-            }
-          </div>
-        }
-        @empty {
-          <div class="px-5 py-10 text-center text-gray-400 text-sm">
-            No applications yet. Use "Apply to Job" to link this candidate to a job posting.
-          </div>
-        }
-      </div>
+          }
+
+          <!-- Summary -->
+          @if (candidate.parsedSummary) {
+            <div>
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Summary</p>
+              <p class="text-sm text-gray-700 leading-relaxed">{{ candidate.parsedSummary }}</p>
+            </div>
+          }
+
+          <!-- Skills -->
+          @if (candidate.skills?.length) {
+            <div>
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills</p>
+              <div class="flex flex-wrap gap-1.5">
+                @for (skill of candidate.skills; track skill) {
+                  <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-medium">
+                    {{ skill }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Experience -->
+          @if (candidate.experience?.length) {
+            <div>
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Work Experience</p>
+              <div class="space-y-3">
+                @for (exp of candidate.experience; track exp.role + exp.company) {
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">💼</div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-800">{{ exp.role }}</p>
+                      <p class="text-xs text-gray-500">{{ exp.company }}</p>
+                      <p class="text-xs text-gray-400 mt-0.5">{{ exp.duration }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Education -->
+          @if (candidate.education?.length) {
+            <div>
+              <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Education</p>
+              <div class="space-y-3">
+                @for (edu of candidate.education; track edu.degree + edu.institution) {
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">🎓</div>
+                    <div>
+                      <p class="text-sm font-medium text-gray-800">
+                        {{ edu.degree }}{{ edu.field ? ' — ' + edu.field : '' }}
+                      </p>
+                      @if (edu.institution) {
+                        <p class="text-xs text-gray-500">{{ edu.institution }}</p>
+                      }
+                      @if (edu.year) {
+                        <p class="text-xs text-gray-400 mt-0.5">{{ edu.year }}</p>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- Applications tab -->
+      @if (activeTab === 'applications') {
+        <div class="divide-y divide-gray-50">
+          @for (app of applications; track app.id) {
+            <div class="px-5 py-3.5 hover:bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-800">{{ app.jobTitle }}</p>
+                  <p class="text-xs text-gray-400">Applied {{ app.createdAt | date:'mediumDate' }}</p>
+                </div>
+                @if (app.matchScore != null) {
+                  <span class="text-sm font-bold text-indigo-600">{{ app.matchScore }}%</span>
+                }
+              </div>
+              @if (app.matchReason) {
+                <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">{{ app.matchReason }}</p>
+              }
+            </div>
+          }
+          @empty {
+            <div class="px-5 py-10 text-center text-gray-400 text-sm">
+              No applications yet. Use "Apply to Job" to link this candidate to a job posting.
+            </div>
+          }
+        </div>
+      }
+
     </div>
 
   </div>

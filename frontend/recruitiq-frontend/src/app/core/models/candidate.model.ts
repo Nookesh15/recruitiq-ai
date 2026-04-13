@@ -1,3 +1,16 @@
+export interface ParsedExperience {
+  role: string;
+  company: string;
+  duration: string;
+}
+
+export interface ParsedEducation {
+  degree: string;
+  field?: string;
+  institution?: string;
+  year?: string;
+}
+
 export interface Candidate {
   id: string;
   firstName: string;
@@ -8,6 +21,11 @@ export interface Candidate {
   status: string;   // code from LookupValues (e.g. "Applied")
   aiScore?: number;
   createdAt: string;
+  // RIQAI-18/21: parsed resume sections
+  skills?: string[];
+  experience?: ParsedExperience[];
+  education?: ParsedEducation[];
+  parsedSummary?: string;
 }
 
 export interface PaginatedList<T> {
