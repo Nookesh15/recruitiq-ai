@@ -72,10 +72,12 @@
                 class="w-full text-sm bg-indigo-50 text-indigo-700 py-2 rounded-lg font-medium hover:bg-indigo-100 transition-colors">
           Apply to Job
         </button>
-        <button (click)="deleteCandidate()"
-                class="w-full text-sm text-red-500 py-2 rounded-lg hover:bg-red-50 transition-colors">
-          Delete Candidate
-        </button>
+        @if (auth.isAdmin()) {
+          <button (click)="deleteCandidate()"
+                  class="w-full text-sm text-red-500 py-2 rounded-lg hover:bg-red-50 transition-colors">
+            Delete Candidate
+          </button>
+        }
       </div>
     </div>
 

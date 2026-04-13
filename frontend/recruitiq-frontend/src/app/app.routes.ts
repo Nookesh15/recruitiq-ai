@@ -44,6 +44,10 @@ export const routes: Routes = [
         path: 'analytics',
         loadComponent: () => import('./features/analytics/analytics.component').then(m => m.AnalyticsComponent),
       },
+      {
+        path: 'users',
+        loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

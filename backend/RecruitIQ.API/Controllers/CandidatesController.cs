@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecruitIQ.Application.Candidates.Commands.CreateCandidate;
 using RecruitIQ.Application.Candidates.Commands.DeleteCandidate;
@@ -60,6 +61,7 @@ public class CandidatesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
     {
         var result = await _mediator.Send(new DeleteCandidateCommand(id), ct);

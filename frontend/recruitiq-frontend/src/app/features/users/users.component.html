@@ -1,0 +1,79 @@
+<!-- Header -->
+<div class="flex items-center justify-between mb-5">
+  <div>
+    <h2 class="text-xl font-bold text-gray-800">User Management</h2>
+    <p class="text-sm text-gray-500">Admin-only — manage system users and roles</p>
+  </div>
+  <button (click)="showCreate = !showCreate"
+          class="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+    + Add User
+  </button>
+</div>
+
+<!-- Create form -->
+@if (showCreate) {
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-5">
+    <p class="text-sm font-semibold text-gray-700 mb-4">New User</p>
+    <div class="grid grid-cols-2 gap-4">
+      <input [(ngModel)]="form.firstName" placeholder="First name"
+             class="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+      <input [(ngModel)]="form.lastName" placeholder="Last name"
+             class="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+      <input [(ngModel)]="form.email" placeholder="Email" type="email"
+             class="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+      <input [(ngModel)]="form.password" placeholder="Password" type="password"
+             class="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+      <select [(ngModel)]="form.role"
+              class="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300">
+        <option value="Recruiter">Recruiter</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
+    @if (createError) {
+      <p class="text-red-500 text-xs mt-2">{{ createError }}</p>
+    }
+    <div class="flex gap-2 mt-4">
+      <button (click)="create()" [disabled]="creating"
+              class="text-sm bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors font-medium">
+        {{ creating ? 'Creating...' : 'Create User' }}
+      </button>
+      <button (click)="showCreate = false"
+              class="text-sm text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+        Cancel
+      </button>
+    </div>
+  </div>
+}
+
+@if (loading) {
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center text-gray-400 text-sm">
+    Loading users...
+  </div>
+} @else if (error) {
+  <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">{{ error }}</div>
+} @else {
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wide">
+          <th class="text-left px-5 py-3 font-medium">Name</th>
+          <th class="text-left px-5 py-3 font-medium">Email</th>
+          <th class="text-left px-5 py-3 font-medium">Role</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        @for (user of users; track user.id) {
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-medium text-gray-800">{{ user.firstName }} {{ user.lastName }}</td>
+            <td class="px-5 py-3 text-gray-500">{{ user.email }}</td>
+            <td class="px-5 py-3">
+              <span class="text-xs px-2.5 py-1 rounded-full font-medium" [ngClass]="roleColor(user.role)">
+                {{ user.role }}
+              </span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

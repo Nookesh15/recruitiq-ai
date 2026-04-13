@@ -9,10 +9,12 @@ namespace RecruitIQ.Application.JobPostings.Queries.GetJobPostings;
 public class GetJobPostingsHandler : IRequestHandler<GetJobPostingsQuery, PaginatedList<JobPostingDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetJobPostingsHandler(IApplicationDbContext context)
+    public GetJobPostingsHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<PaginatedList<JobPostingDto>> Handle(GetJobPostingsQuery request, CancellationToken ct)
@@ -21,9 +23,14 @@ public class GetJobPostingsHandler : IRequestHandler<GetJobPostingsQuery, Pagina
             .AsNoTracking()
             .OrderByDescending(j => j.CreatedAt);
 
-        var total = await query.CountAsync(ct);
+        // Recruiters only see job postings they created
+        var filtered = _currentUser.IsAdmin
+            ? query.AsQueryable()
+            : query.Where(j => j.CreatedById == _currentUser.UserId || j.CreatedById == null);
 
-        var items = await query
+        var total = await filtered.CountAsync(ct);
+
+        var items = await filtered
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(j => new JobPostingDto(

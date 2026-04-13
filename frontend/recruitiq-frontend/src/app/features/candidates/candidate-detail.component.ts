@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgClass, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/services/auth.service';
 import { CandidateService } from '../../core/services/candidate.service';
 import { LookupService } from '../../core/services/lookup.service';
 import { JobPostingService } from '../../core/services/job-posting.service';
@@ -20,6 +21,7 @@ import { JobApplication } from '../../core/models/job-application.model';
 export class CandidateDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  readonly auth = inject(AuthService);
   private readonly candidateService = inject(CandidateService);
   private readonly lookupService = inject(LookupService);
   private readonly jobService = inject(JobPostingService);

@@ -18,5 +18,8 @@ public class Candidate : BaseEntity
     public string? ParsedEducationJson { get; set; }   // JSON array of {degree, field, institution, year}
     public string? ParsedSummary { get; set; }
 
+    // RIQAI-26: row-level ownership for Recruiter filtering
+    public Guid? CreatedById { get; set; }
+
     public ICollection<JobApplication> Applications { get; set; } = [];
 }

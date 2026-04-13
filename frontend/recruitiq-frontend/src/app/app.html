@@ -13,12 +13,14 @@
 
       <nav class="flex-1 px-3 py-4 space-y-1">
         @for (item of menuItems; track item.route) {
-          <a [routerLink]="item.route"
-             routerLinkActive="bg-indigo-700 text-white"
-             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white transition-all text-sm font-medium">
-            <span class="text-lg">{{ item.icon }}</span>
-            {{ item.label }}
-          </a>
+          @if (!item.adminOnly || auth.isAdmin()) {
+            <a [routerLink]="item.route"
+               routerLinkActive="bg-indigo-700 text-white"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white transition-all text-sm font-medium">
+              <span class="text-lg">{{ item.icon }}</span>
+              {{ item.label }}
+            </a>
+          }
         }
       </nav>
 

@@ -14,10 +14,11 @@ export class App {
   readonly isLoggedIn = this.auth.isLoggedIn();
 
   menuItems = [
-    { label: 'Dashboard', icon: '📊', route: '/dashboard' },
-    { label: 'Candidates', icon: '👤', route: '/candidates' },
-    { label: 'Job Postings', icon: '💼', route: '/jobs' },
-    { label: 'Pipeline', icon: '🗂', route: '/pipeline' },
-    { label: 'Analytics', icon: '📈', route: '/analytics' },
+    { label: 'Dashboard',    icon: '📊', route: '/dashboard',  adminOnly: false },
+    { label: 'Candidates',   icon: '👤', route: '/candidates', adminOnly: false },
+    { label: 'Job Postings', icon: '💼', route: '/jobs',       adminOnly: false },
+    { label: 'Pipeline',     icon: '🗂', route: '/pipeline',   adminOnly: false },
+    { label: 'Analytics',    icon: '📈', route: '/analytics',  adminOnly: false },
+    { label: 'Users',        icon: '🔑', route: '/users',      adminOnly: true  },
   ];
 }

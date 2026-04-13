@@ -9,10 +9,12 @@ namespace RecruitIQ.Application.JobPostings.Commands.CreateJobPosting;
 public class CreateJobPostingHandler : IRequestHandler<CreateJobPostingCommand, Result<JobPostingDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public CreateJobPostingHandler(IApplicationDbContext context)
+    public CreateJobPostingHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<Result<JobPostingDto>> Handle(CreateJobPostingCommand request, CancellationToken ct)
@@ -22,7 +24,8 @@ public class CreateJobPostingHandler : IRequestHandler<CreateJobPostingCommand, 
             Title = request.Title,
             Description = request.Description,
             Department = request.Department,
-            Location = request.Location
+            Location = request.Location,
+            CreatedById = _currentUser.UserId
         };
 
         await _context.JobPostings.AddAsync(job, ct);
