@@ -1,0 +1,58 @@
+# ─────────────────────────────────────────────────────────────
+# RecruitIQ — Railway deployment config
+# https://docs.railway.app/reference/config-as-code
+#
+# Deploy all three services from this monorepo.
+# Set required environment variables in the Railway dashboard.
+# ─────────────────────────────────────────────────────────────
+
+[build]
+builder = "DOCKERFILE"
+
+# ── Backend (.NET 9) ─────────────────────────────────────────
+[[services]]
+name = "backend"
+source = "backend"
+
+[services.build]
+dockerfilePath = "backend/Dockerfile"
+
+[services.deploy]
+startCommand = "dotnet RecruitIQ.API.dll"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[services.variables]
+ASPNETCORE_ENVIRONMENT = "Production"
+ASPNETCORE_URLS = "http://+:$PORT"
+
+# ── AI Engine (Python FastAPI) ────────────────────────────────
+[[services]]
+name = "ai-engine"
+source = "ai-engine"
+
+[services.build]
+dockerfilePath = "ai-engine/Dockerfile"
+
+[services.deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 20
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# ── Frontend (nginx SPA) ──────────────────────────────────────
+[[services]]
+name = "frontend"
+source = "frontend"
+
+[services.build]
+dockerfilePath = "frontend/Dockerfile"
+
+[services.deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 10
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

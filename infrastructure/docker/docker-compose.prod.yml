@@ -1,0 +1,113 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────
+# RecruitIQ — Production Stack
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Required environment variables (set in CI secrets or host env):
+#   MSSQL_SA_PASSWORD, JWT_SECRET, LLM_API_KEY, EMAIL_HOST, etc.
+# See .env.example for the full list.
+# ─────────────────────────────────────────────────────────────
+
+services:
+
+  # ── SQL Server 2022 ────────────────────────────────────────
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: Express            # Free tier — max 10 GB
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD}' -Q 'SELECT 1' -C -b -o /dev/null",
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 45s
+    # Not exposed to host in production — only accessible within Docker network
+
+  # ── .NET 9 Backend ─────────────────────────────────────────
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      target: final               # Use multi-stage final layer
+      args:
+        BUILD_CONFIGURATION: Release
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+      ConnectionStrings__DefaultConnection: >-
+        Server=db,1433;Database=RecruitIQ;User Id=sa;
+        Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+      AiEngineUrl: http://ai-engine:8000
+      Jwt__Secret: ${JWT_SECRET}
+      Jwt__Issuer: recruitiq-api
+      Jwt__Audience: recruitiq-frontend
+      AllowedOrigins: ${FRONTEND_ORIGIN:-https://recruitiq.app}
+      Email__Host: ${EMAIL_HOST:-}
+      Email__Port: ${EMAIL_PORT:-587}
+      Email__EnableSsl: ${EMAIL_ENABLE_SSL:-true}
+      Email__From: ${EMAIL_FROM:-noreply@recruitiq.ai}
+      Email__Username: ${EMAIL_USERNAME:-}
+      Email__Password: ${EMAIL_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5000/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ── Python FastAPI AI Engine ────────────────────────────────
+  ai-engine:
+    build:
+      context: ../../ai-engine
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-none}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    # Not exposed to host — accessed only via internal Docker network by backend
+
+  # ── Angular Frontend (nginx) ────────────────────────────────
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${API_URL:-/api}    # Nginx proxies /api → backend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mssql_data:
