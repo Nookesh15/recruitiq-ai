@@ -10,7 +10,7 @@
       <p class="text-gray-500 text-sm mt-1">Sign in to your account</p>
     </div>
 
-    <!-- Error -->
+    <!-- API error -->
     @if (error) {
       <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-5 text-red-700 text-sm">
         {{ error }}
@@ -18,36 +18,46 @@
     }
 
     <!-- Form -->
-    <form (ngSubmit)="submit()" #form="ngForm" class="space-y-4">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
         <input
           type="email"
-          name="email"
-          [(ngModel)]="email"
-          required
+          formControlName="email"
           placeholder="admin@recruitiq.ai"
-          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all" />
+          [ngClass]="email.invalid && email.touched ? 'border-red-400 focus:ring-red-300' : 'border-gray-200 focus:ring-indigo-300 focus:border-indigo-400'"
+          class="w-full border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 transition-all" />
+        @if (email.touched && email.hasError('required')) {
+          <p class="text-red-500 text-xs mt-1">Email is required.</p>
+        } @else if (email.touched && email.hasError('email')) {
+          <p class="text-red-500 text-xs mt-1">Enter a valid email address.</p>
+        }
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
         <input
           type="password"
-          name="password"
-          [(ngModel)]="password"
-          required
+          formControlName="password"
           placeholder="••••••••"
-          class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all" />
+          [ngClass]="password.invalid && password.touched ? 'border-red-400 focus:ring-red-300' : 'border-gray-200 focus:ring-indigo-300 focus:border-indigo-400'"
+          class="w-full border rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 transition-all" />
+        @if (password.touched && password.hasError('required')) {
+          <p class="text-red-500 text-xs mt-1">Password is required.</p>
+        } @else if (password.touched && password.hasError('minlength')) {
+          <p class="text-red-500 text-xs mt-1">Password must be at least 6 characters.</p>
+        }
       </div>
 
       <button
         type="submit"
-        [disabled]="loading || !form.valid"
-        [ngClass]="loading || !form.valid ? 'opacity-60 cursor-not-allowed' : 'hover:bg-indigo-700'"
+        [disabled]="loading"
+        [ngClass]="loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-indigo-700'"
         class="w-full bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors mt-2">
         {{ loading ? 'Signing in...' : 'Sign In' }}
       </button>
+
     </form>
 
     <p class="text-center text-xs text-gray-400 mt-6">

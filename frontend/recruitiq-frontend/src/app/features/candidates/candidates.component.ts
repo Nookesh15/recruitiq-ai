@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CandidateService } from '../../core/services/candidate.service';
 import { LookupService } from '../../core/services/lookup.service';
@@ -10,13 +10,14 @@ import { LookupValue } from '../../core/models/lookup.model';
 @Component({
   selector: 'app-candidates',
   standalone: true,
-  imports: [NgClass, FormsModule],
+  imports: [NgClass, FormsModule, ReactiveFormsModule],
   templateUrl: './candidates.component.html',
 })
 export class CandidatesComponent implements OnInit {
   private readonly candidateService = inject(CandidateService);
   private readonly lookupService = inject(LookupService);
   private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
 
   search = '';
   candidates: Candidate[] = [];
@@ -28,10 +29,15 @@ export class CandidatesComponent implements OnInit {
   showAddModal = false;
   adding = false;
   addError = '';
-  newFirst = '';
-  newLast = '';
-  newEmail = '';
-  newPhone = '';
+
+  addForm = this.fb.group({
+    firstName: ['', [Validators.required, Validators.minLength(2)]],
+    lastName:  ['', [Validators.required, Validators.minLength(2)]],
+    email:     ['', [Validators.required, Validators.email]],
+    phone:     [''],
+  });
+
+  get f() { return this.addForm.controls; }
 
   ngOnInit(): void {
     this.lookupService.getByCategory('CandidateStatus').subscribe({
@@ -91,18 +97,19 @@ export class CandidatesComponent implements OnInit {
   }
 
   addCandidate(): void {
+    if (this.addForm.invalid) { this.addForm.markAllAsTouched(); return; }
     this.adding = true;
     this.addError = '';
+    const { firstName, lastName, email, phone } = this.addForm.getRawValue();
     this.candidateService.create({
-      firstName: this.newFirst,
-      lastName: this.newLast,
-      email: this.newEmail,
-      phone: this.newPhone || undefined,
+      firstName: firstName!,
+      lastName:  lastName!,
+      email:     email!,
+      phone:     phone || undefined,
     }).subscribe({
       next: (c) => {
         this.candidates = [c, ...this.candidates];
-        this.showAddModal = false;
-        this.newFirst = this.newLast = this.newEmail = this.newPhone = '';
+        this.closeModal();
         this.adding = false;
       },
       error: (err) => {
@@ -115,6 +122,6 @@ export class CandidatesComponent implements OnInit {
   closeModal(): void {
     this.showAddModal = false;
     this.addError = '';
-    this.newFirst = this.newLast = this.newEmail = this.newPhone = '';
+    this.addForm.reset();
   }
 }

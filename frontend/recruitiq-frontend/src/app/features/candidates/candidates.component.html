@@ -95,42 +95,55 @@
         <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm mb-4">{{ addError }}</div>
       }
 
-      <div class="space-y-3">
+      <form [formGroup]="addForm" (ngSubmit)="addCandidate()" class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">First Name *</label>
-            <input [(ngModel)]="newFirst" placeholder="Priya"
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+            <input formControlName="firstName" placeholder="Priya"
+                   [ngClass]="f.firstName.invalid && f.firstName.touched ? 'border-red-400' : 'border-gray-200'"
+                   class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+            @if (f.firstName.touched && f.firstName.invalid) {
+              <p class="text-red-500 text-xs mt-0.5">First name is required.</p>
+            }
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Last Name *</label>
-            <input [(ngModel)]="newLast" placeholder="Sharma"
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+            <input formControlName="lastName" placeholder="Sharma"
+                   [ngClass]="f.lastName.invalid && f.lastName.touched ? 'border-red-400' : 'border-gray-200'"
+                   class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+            @if (f.lastName.touched && f.lastName.invalid) {
+              <p class="text-red-500 text-xs mt-0.5">Last name is required.</p>
+            }
           </div>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-600 mb-1">Email *</label>
-          <input type="email" [(ngModel)]="newEmail" placeholder="priya@example.com"
-                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+          <input type="email" formControlName="email" placeholder="priya@example.com"
+                 [ngClass]="f.email.invalid && f.email.touched ? 'border-red-400' : 'border-gray-200'"
+                 class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
+          @if (f.email.touched && f.email.hasError('required')) {
+            <p class="text-red-500 text-xs mt-0.5">Email is required.</p>
+          } @else if (f.email.touched && f.email.hasError('email')) {
+            <p class="text-red-500 text-xs mt-0.5">Enter a valid email address.</p>
+          }
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
-          <input [(ngModel)]="newPhone" placeholder="+91 9999999999"
+          <input formControlName="phone" placeholder="+91 9999999999"
                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-300" />
         </div>
-      </div>
 
-      <div class="flex gap-3 mt-5">
-        <button (click)="closeModal()"
-                class="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm hover:bg-gray-50">
-          Cancel
-        </button>
-        <button (click)="addCandidate()"
-                [disabled]="!newFirst || !newLast || !newEmail || adding"
-                class="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-indigo-700">
-          {{ adding ? 'Adding...' : 'Add Candidate' }}
-        </button>
-      </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" (click)="closeModal()"
+                  class="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm hover:bg-gray-50">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="adding"
+                  class="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-indigo-700">
+            {{ adding ? 'Adding...' : 'Add Candidate' }}
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 }

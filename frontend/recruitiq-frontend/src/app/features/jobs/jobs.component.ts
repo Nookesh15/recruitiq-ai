@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, Subject, switchMap } from 'rxjs';
 import { JobPostingService } from '../../core/services/job-posting.service';
@@ -12,7 +12,7 @@ import { LookupValue } from '../../core/models/lookup.model';
 @Component({
   selector: 'app-jobs',
   standalone: true,
-  imports: [NgClass, FormsModule],
+  imports: [NgClass, FormsModule, ReactiveFormsModule],
   templateUrl: './jobs.component.html',
 })
 export class JobsComponent implements OnInit {
@@ -20,6 +20,7 @@ export class JobsComponent implements OnInit {
   private readonly lookupService = inject(LookupService);
   private readonly aiService = inject(AiService);
   private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
   private readonly jdChange$ = new Subject<string>();
 
   jobs: JobPosting[] = [];
@@ -30,12 +31,17 @@ export class JobsComponent implements OnInit {
   showAddModal = false;
   adding = false;
   addError = '';
-  newTitle = '';
-  newDepartment = '';
-  newLocation = '';
-  newDescription = '';
   biasFlags: BiasFlag[] = [];
   biasDismissed = false;
+
+  addForm = this.fb.group({
+    title:       ['', [Validators.required, Validators.minLength(3)]],
+    department:  ['', Validators.required],
+    location:    ['', Validators.required],
+    description: ['', [Validators.required, Validators.minLength(50)]],
+  });
+
+  get f() { return this.addForm.controls; }
 
   ngOnInit(): void {
     this.lookupService.getByCategory('Department').subscribe(d => (this.departments = d));
@@ -72,13 +78,15 @@ export class JobsComponent implements OnInit {
   }
 
   createJob(): void {
+    if (this.addForm.invalid) { this.addForm.markAllAsTouched(); return; }
     this.adding = true;
     this.addError = '';
+    const { title, description, department, location } = this.addForm.getRawValue();
     this.jobService.create({
-      title: this.newTitle,
-      description: this.newDescription,
-      department: this.newDepartment,
-      location: this.newLocation,
+      title: title!,
+      description: description!,
+      department: department!,
+      location: location!,
     }).subscribe({
       next: (job) => {
         this.jobs = [job, ...this.jobs];
@@ -120,6 +128,6 @@ export class JobsComponent implements OnInit {
     this.addError = '';
     this.biasFlags = [];
     this.biasDismissed = false;
-    this.newTitle = this.newDepartment = this.newLocation = this.newDescription = '';
+    this.addForm.reset();
   }
 }
